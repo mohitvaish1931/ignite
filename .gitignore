@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+
+# Next.js and Vercel output
+**/.next/
+**/out/
+**/.vercel/
+
+# Build and test output
+**/dist/
+**/build/
+**/coverage/
+.turbo/
+*.tsbuildinfo
+
+# Local files
+.DS_Store
+Thumbs.db
+*.log
+/Screen Recording 2026-08-08 122732.mp4

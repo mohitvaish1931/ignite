@@ -1,0 +1,22 @@
+{
+  "name": "@project-organizer/sdk",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "generate": "openapi-ts --input ../../services/api/swagger.json --output ./src/generated --client fetch",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.0",
+    "@prisma/client": "^7.9.0",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.49.0",
+    "@types/pg": "^8.20.0",
+    "typescript": "^5.0.0"
+  }
+}

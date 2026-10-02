@@ -1,0 +1,1258 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------------------------------------
+// Core Organization (Multi-Tenancy)
+// ------------------------------------------------------
+
+model Organization {
+  id       String   @id @default(uuid()) @db.Uuid
+  publicId String   @unique @default(dbgenerated("concat('org_', encode(gen_random_bytes(12), 'hex'))"))
+  name     String
+  slug     String   @unique
+  domain   String?  @unique
+  logoUrl  String?
+  plan     PlanType @default(STARTER)
+  version  Int      @default(1)
+
+  // Auditing & Soft Delete
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean   @default(false)
+  createdBy String?   @db.Uuid
+  updatedBy String?   @db.Uuid
+  deletedBy String?   @db.Uuid
+
+  // Relations
+  users       User[]
+  roles       Role[]
+  members     OrganizationMember[]
+  invitations OrganizationInvitation[]
+  settings    OrganizationSetting?
+
+  events          Event[]
+  eventCategories EventCategory[]
+  venues          Venue[]
+  scannerDevices  ScannerDevice[]
+  auditLogs       AuditLog[]
+  payments        Payment[]
+
+  @@index([slug])
+  @@index([publicId])
+  @@map("organizations")
+}
+
+model OrganizationSetting {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @unique @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Settings JSON (flexible)
+  settings Json @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("organization_settings")
+}
+
+enum PlanType {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+// ------------------------------------------------------
+// Identity & Access Management (IAM)
+// ------------------------------------------------------
+
+model User {
+  id           String  @id @default(uuid()) @db.Uuid
+  publicId     String  @unique @default(dbgenerated("concat('usr_', encode(gen_random_bytes(12), 'hex'))"))
+  email        String  @unique
+  passwordHash String
+  firstName    String
+  lastName     String?
+  phone        String?
+  version      Int     @default(1)
+
+  // Multi-tenancy
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Auditing & Soft Delete
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean   @default(false)
+  createdBy String?   @db.Uuid
+  updatedBy String?   @db.Uuid
+  deletedBy String?   @db.Uuid
+
+  // Relations
+  profile                   UserProfile?
+  memberships               OrganizationMember[]
+  refreshTokens             RefreshToken[]
+  checkInSessionsAsOperator CheckInSession[]
+  attendances               Attendance[]
+  deviceSessions            DeviceSession[]
+  userRoles                 UserRole[]
+
+  // Event Engine Relations
+  eventRegistrations EventRegistration[]
+  timelineEvents     EventTimeline[]
+  teamMembers        TeamMember[]
+  eventAssignments   EventAssignment[]
+  judgeAssignments   JudgeAssignment[]
+  mentorAssignments  MentorAssignment[]
+  mentorFeedbacks    MentorFeedback[]    @relation("UserMentorFeedbacks")
+  payments           Payment[]
+
+  @@index([email])
+  @@index([publicId])
+  @@map("users")
+}
+
+model UserProfile {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+
+  avatarUrl String?
+  bio       String?
+  metadata  Json    @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+model Role {
+  id          String  @id @default(uuid()) @db.Uuid
+  publicId    String  @unique @default(dbgenerated("concat('rol_', encode(gen_random_bytes(12), 'hex'))"))
+  name        String
+  description String?
+  isSystem    Boolean @default(false) // Cannot be deleted
+
+  // Multi-tenancy
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Auditing & Soft Delete
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean   @default(false)
+  createdBy String?   @db.Uuid
+  updatedBy String?   @db.Uuid
+  deletedBy String?   @db.Uuid
+
+  // Relations
+  permissions RolePermission[]
+  userRoles   UserRole[]
+  invitations OrganizationInvitation[]
+
+  @@index([organizationId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @default(uuid()) @db.Uuid
+  action      String  @unique // e.g. "event.create"
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles RolePermission[]
+
+  @@index([action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId String @db.Uuid
+  roleId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ------------------------------------------------------
+// Organization Membership & Invitations
+// ------------------------------------------------------
+
+model OrganizationMember {
+  id             String @id @default(uuid()) @db.Uuid
+  userId         String @db.Uuid
+  organizationId String @db.Uuid
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  @@unique([userId, organizationId])
+  @@index([userId, organizationId])
+  @@map("organization_members")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+model OrganizationInvitation {
+  id             String           @id @default(uuid()) @db.Uuid
+  publicId       String           @unique @default(dbgenerated("concat('inv_', encode(gen_random_bytes(12), 'hex'))"))
+  email          String
+  organizationId String           @db.Uuid
+  roleId         String           @db.Uuid
+  invitedBy      String           @db.Uuid
+  token          String           @unique
+  status         InvitationStatus @default(PENDING)
+  metadata       Json             @default("{}")
+  maxUses        Int              @default(1)
+  uses           Int              @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  role         Role         @relation(fields: [roleId], references: [id])
+
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([email])
+  @@index([token])
+  @@map("organization_invitations")
+}
+
+// ------------------------------------------------------
+// Authentication Models
+// ------------------------------------------------------
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  hash       String // Hashed token, never plaintext
+  device     String?
+  ip         String?
+  userAgent  String?
+  expiresAt  DateTime
+  lastUsedAt DateTime?
+  isRevoked  Boolean   @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([hash])
+  @@map("refresh_tokens")
+}
+
+model DeviceSession {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  deviceId   String   @unique
+  deviceName String?
+  ip         String?
+  userAgent  String?
+  lastActive DateTime @default(now())
+  isRevoked  Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("device_sessions")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String
+  tokenHash String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("email_verifications")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String
+  tokenHash String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("password_resets")
+}
+
+// ------------------------------------------------------
+// Audit Logs
+// ------------------------------------------------------
+
+model AuditLog {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  actorId        String?      @db.Uuid // Null if system action
+  action         String // e.g. "USER_CREATED", "EVENT_PUBLISHED"
+  resource       String // e.g. "User", "Event"
+  resourceId     String       @db.Uuid
+
+  before Json?
+  after  Json?
+
+  ip        String?
+  userAgent String?
+  requestId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ------------------------------------------------------
+// Milestone 2: Event Engine Core Enums
+// ------------------------------------------------------
+
+enum EventState {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  LIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum EventVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHECKED_IN
+}
+
+enum RegistrationFieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  SELECT
+  MULTISELECT
+  CHECKBOX
+  RADIO
+  FILE
+}
+
+// ------------------------------------------------------
+// Milestone 2: Event Engine Core Models
+// ------------------------------------------------------
+
+model EventCategory {
+  id             String  @id @default(uuid()) @db.Uuid
+  publicId       String  @unique @default(dbgenerated("concat('evtc_', encode(gen_random_bytes(12), 'hex'))"))
+  organizationId String  @db.Uuid
+  name           String
+  slug           String
+  description    String?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  events       Event[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@map("event_categories")
+}
+
+model Event {
+  id             String          @id @default(uuid()) @db.Uuid
+  publicId       String          @unique @default(dbgenerated("concat('evt_', encode(gen_random_bytes(12), 'hex'))"))
+  organizationId String          @db.Uuid
+  categoryId     String          @db.Uuid
+  name           String
+  slug           String
+  summary        String?
+  description    String?
+  imageUrl       String?
+  state          EventState      @default(DRAFT)
+  visibility     EventVisibility @default(PRIVATE)
+  timezone       String          @default("UTC")
+  capacity       Int?
+
+  registrationStartAt DateTime?
+  registrationEndAt   DateTime?
+  startAt             DateTime
+  endAt               DateTime
+  version             Int       @default(1)
+
+  // Relations
+  organization     Organization        @relation(fields: [organizationId], references: [id])
+  category         EventCategory       @relation(fields: [categoryId], references: [id])
+  settings         EventSetting?
+  timelines        EventTimeline[]
+  schedules        Schedule[]
+  registrationForm RegistrationForm?
+  registrations    EventRegistration[]
+  checkInSessions  CheckInSession[]
+  scanLogs         ScanLog[]
+  attendances      Attendance[]
+  versions         EventVersion[]
+
+  // Auditing
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
+  isDeleted          Boolean             @default(false)
+  createdBy          String?             @db.Uuid
+  updatedBy          String?             @db.Uuid
+  deletedBy          String?             @db.Uuid
+  hackathonTracks    HackathonTrack[]
+  teams              Team[]
+  scorecardTemplates ScorecardTemplate[]
+  leaderboardRules   LeaderboardRule[]
+  leaderboards       Leaderboard[]
+  mentorAssignments  MentorAssignment[]
+  payments           Payment[]
+  eventAssignments   EventAssignment[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([state])
+  @@map("events")
+}
+
+model EventSetting {
+  id                   String  @id @default(uuid()) @db.Uuid
+  eventId              String  @unique @db.Uuid
+  allowTeams           Boolean @default(false)
+  allowPayments        Boolean @default(false)
+  allowCertificates    Boolean @default(false)
+  allowWaitingList     Boolean @default(false)
+  allowMultipleEntries Boolean @default(false)
+  allowQRCode          Boolean @default(true)
+  metadata             Json    @default("{}")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("event_settings")
+}
+
+model EventVersion {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventId   String   @db.Uuid
+  version   Int
+  snapshot  Json
+  createdBy String?  @db.Uuid
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@unique([eventId, version])
+  @@map("event_versions")
+}
+
+model EventTimeline {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventId   String   @db.Uuid
+  actorId   String?  @db.Uuid
+  action    String // e.g. "STATE_CHANGED", "VENUE_UPDATED"
+  message   String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([eventId])
+  @@index([createdAt])
+  @@map("event_timelines")
+}
+
+model EventAssignment {
+  id      String    @id @default(uuid()) @db.Uuid
+  eventId String    @db.Uuid
+  userId  String    @db.Uuid
+  role    EventRole
+  status  String    @default("ASSIGNED") // ASSIGNED, ACCEPTED, DECLINED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId, role])
+  @@map("event_assignments")
+}
+
+// ------------------------------------------------------
+// Venue Engine
+// ------------------------------------------------------
+
+model Venue {
+  id             String  @id @default(uuid()) @db.Uuid
+  publicId       String  @unique @default(dbgenerated("concat('ven_', encode(gen_random_bytes(12), 'hex'))"))
+  organizationId String  @db.Uuid
+  name           String
+  building       String?
+  floor          String?
+  capacity       Int?
+  resources      Json    @default("{}") // e.g. {"projector": true, "whiteboard": false}
+
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  sessions        Session[]
+  checkInSessions CheckInSession[]
+  scanLogs        ScanLog[]
+  attendances     Attendance[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  @@index([organizationId])
+  @@map("venues")
+}
+
+// ------------------------------------------------------
+// Schedule Engine
+// ------------------------------------------------------
+
+model Schedule {
+  id       String @id @default(uuid()) @db.Uuid
+  publicId String @unique @default(dbgenerated("concat('sch_', encode(gen_random_bytes(12), 'hex'))"))
+  eventId  String @db.Uuid
+  name     String
+
+  event    Event     @relation(fields: [eventId], references: [id])
+  sessions Session[]
+  breaks   Break[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@map("schedules")
+}
+
+model Session {
+  id          String   @id @default(uuid()) @db.Uuid
+  scheduleId  String   @db.Uuid
+  venueId     String?  @db.Uuid
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+  venue    Venue?   @relation(fields: [venueId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([scheduleId])
+  @@index([venueId])
+  @@index([startAt, endAt])
+  @@map("sessions")
+}
+
+model Break {
+  id         String   @id @default(uuid()) @db.Uuid
+  scheduleId String   @db.Uuid
+  title      String
+  startAt    DateTime
+  endAt      DateTime
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([scheduleId])
+  @@map("breaks")
+}
+
+// ------------------------------------------------------
+// Dynamic Registration System
+// ------------------------------------------------------
+
+model RegistrationForm {
+  id      String @id @default(uuid()) @db.Uuid
+  eventId String @unique @db.Uuid
+  title   String
+
+  event  Event               @relation(fields: [eventId], references: [id])
+  fields RegistrationField[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("registration_forms")
+}
+
+model RegistrationField {
+  id         String                @id @default(uuid()) @db.Uuid
+  formId     String                @db.Uuid
+  name       String // internal key e.g. "tshirt_size"
+  label      String // display e.g. "T-Shirt Size"
+  type       RegistrationFieldType
+  isRequired Boolean               @default(false)
+  options    Json                  @default("[]") // For select, radio
+  order      Int                   @default(0)
+
+  form    RegistrationForm     @relation(fields: [formId], references: [id])
+  answers RegistrationAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([formId, name])
+  @@index([formId])
+  @@map("registration_fields")
+}
+
+model EventRegistration {
+  id          String             @id @default(uuid()) @db.Uuid
+  publicId    String             @unique @default(dbgenerated("concat('reg_', encode(gen_random_bytes(12), 'hex'))"))
+  eventId     String             @db.Uuid
+  userId      String             @db.Uuid
+  status      RegistrationStatus @default(PENDING)
+  qrCode      String?            @unique
+  checkedIn   Boolean            @default(false)
+  checkedInAt DateTime?
+
+  event   Event                @relation(fields: [eventId], references: [id])
+  user    User                 @relation(fields: [userId], references: [id])
+  answers RegistrationAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_registrations")
+}
+
+model RegistrationAnswer {
+  id             String @id @default(uuid()) @db.Uuid
+  registrationId String @db.Uuid
+  fieldId        String @db.Uuid
+  value          Json // Store as json to handle arrays, strings, etc.
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id])
+  field        RegistrationField @relation(fields: [fieldId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([registrationId, fieldId])
+  @@index([registrationId])
+  @@map("registration_answers")
+}
+
+// ==========================================
+// MILESTONE 3: QR & CHECK-IN ENGINE
+// ==========================================
+
+enum QrStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+enum QrUsagePolicy {
+  SINGLE
+  MULTIPLE
+  UNLIMITED
+}
+
+enum QrType {
+  REGISTRATION
+  INVITATION
+  TICKET
+  VOLUNTEER
+  STAFF
+  JUDGE
+  CERTIFICATE
+  ASSET
+  TEMPORARY
+}
+
+enum ScanType {
+  ENTRY
+  EXIT
+  SESSION_ENTRY
+  SESSION_EXIT
+  MEAL
+  RESTROOM
+  VIP
+  VOLUNTEER
+  JUDGE
+  CERTIFICATE
+  EMERGENCY
+}
+
+enum ScanResult {
+  SUCCESS
+  INVALID_QR
+  EXPIRED
+  REVOKED
+  USAGE_LIMIT
+  PAYMENT_REQUIRED
+  NOT_APPROVED
+  OUTSIDE_TIME
+  WRONG_VENUE
+  ALREADY_CHECKED_IN
+}
+
+model ScannerDevice {
+  id             String           @id @default(uuid()) @db.Uuid
+  publicId       String           @unique @default(dbgenerated("concat('scn_', replace(cast(gen_random_uuid() as text), '-', ''))"))
+  organizationId String           @db.Uuid
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  name           String
+  status         String           @default("ACTIVE") // ACTIVE, INACTIVE, COMPROMISED
+  lastSeen       DateTime?
+  version        String?
+  sessions       CheckInSession[]
+  logs           ScanLog[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model CheckInSession {
+  id         String        @id @default(uuid()) @db.Uuid
+  eventId    String        @db.Uuid
+  event      Event         @relation(fields: [eventId], references: [id])
+  scannerId  String        @db.Uuid
+  scanner    ScannerDevice @relation(fields: [scannerId], references: [id])
+  operatorId String        @db.Uuid
+  operator   User          @relation(fields: [operatorId], references: [id])
+  venueId    String?       @db.Uuid
+  venue      Venue?        @relation(fields: [venueId], references: [id])
+  startAt    DateTime
+  endAt      DateTime?
+  createdAt  DateTime      @default(now())
+}
+
+model QRCode {
+  id            String        @id @default(uuid()) @db.Uuid
+  publicId      String        @unique @default(dbgenerated("concat('qr_', replace(cast(gen_random_uuid() as text), '-', ''))"))
+  type          QrType
+  referenceId   String        @db.Uuid // UUID of Registration, Invitation, etc.
+  token         String        @unique // Secure random hash
+  status        QrStatus      @default(ACTIVE)
+  usagePolicy   QrUsagePolicy @default(SINGLE)
+  usageLimit    Int           @default(1)
+  usageCount    Int           @default(0)
+  expiresAt     DateTime?
+  encryptedData String? // Any encrypted payload if ever needed (optional)
+  logs          ScanLog[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model ScanLog {
+  id             String        @id @default(uuid()) @db.Uuid
+  qrCodeId       String        @db.Uuid
+  qrCode         QRCode        @relation(fields: [qrCodeId], references: [id])
+  scannerId      String        @db.Uuid
+  scanner        ScannerDevice @relation(fields: [scannerId], references: [id])
+  eventId        String        @db.Uuid
+  event          Event         @relation(fields: [eventId], references: [id])
+  venueId        String?       @db.Uuid
+  venue          Venue?        @relation(fields: [venueId], references: [id])
+  scanType       ScanType
+  result         ScanResult
+  failureReason  String?
+  device         String // Device metadata
+  gpsLocation    Json? // GPS metadata
+  idempotencyKey String?       @unique // Protects against offline double-syncs
+  createdAt      DateTime      @default(now())
+}
+
+model Attendance {
+  id             String   @id @default(uuid()) @db.Uuid
+  eventId        String   @db.Uuid
+  event          Event    @relation(fields: [eventId], references: [id])
+  userId         String   @db.Uuid
+  user           User     @relation(fields: [userId], references: [id])
+  scanType       ScanType
+  venueId        String?  @db.Uuid
+  venue          Venue?   @relation(fields: [venueId], references: [id])
+  firstScannedAt DateTime
+  lastScannedAt  DateTime
+  scanCount      Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([eventId, userId, scanType])
+}
+
+// ======================================================
+// Milestone 4: Hackathon Engine
+// ======================================================
+
+// ------------------------------------------------------
+// Enums
+// ------------------------------------------------------
+enum TeamStatus {
+  DRAFT
+  RECRUITING
+  READY
+  SUBMITTED
+  EVALUATED
+  WINNER
+  ARCHIVED
+  DISQUALIFIED
+}
+
+enum TeamMemberRole {
+  LEADER
+  MEMBER
+  MENTOR
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  LOCKED
+  UNDER_REVIEW
+  SCORED
+  WINNER
+  ARCHIVED
+}
+
+enum JudgeAssignmentStatus {
+  ASSIGNED
+  STARTED
+  SCORED
+  SUBMITTED
+  LOCKED
+}
+
+enum EventRole {
+  ORGANIZER
+  VOLUNTEER
+}
+
+// ------------------------------------------------------
+// Models
+// ------------------------------------------------------
+
+model HackathonTrack {
+  id      String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  event   Event  @relation(fields: [eventId], references: [id])
+
+  name        String
+  description String?
+  minTeamSize Int     @default(1)
+  maxTeamSize Int     @default(4)
+
+  problemStatements ProblemStatement[]
+  teams             Team[]
+  judgeAssignments  JudgeAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("hackathon_tracks")
+}
+
+model ProblemStatement {
+  id      String         @id @default(uuid()) @db.Uuid
+  trackId String         @db.Uuid
+  track   HackathonTrack @relation(fields: [trackId], references: [id])
+
+  title       String
+  description String
+  difficulty  String?
+  tags        String[]
+  sponsor     String?
+  maxTeams    Int?
+  attachments Json? // Array of external URLs or presigned URLs
+
+  submissions Submission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("problem_statements")
+}
+
+model Team {
+  id      String          @id @default(uuid()) @db.Uuid
+  eventId String          @db.Uuid
+  event   Event           @relation(fields: [eventId], references: [id])
+  trackId String?         @db.Uuid
+  track   HackathonTrack? @relation(fields: [trackId], references: [id])
+
+  name     String
+  status   TeamStatus @default(DRAFT)
+  joinCode String?    @unique
+
+  members     TeamMember[]
+  invites     TeamInvite[]
+  submissions Submission[]
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  mentorAssignments MentorAssignment[]
+
+  @@unique([eventId, name]) // Team names unique per event
+  @@map("teams")
+}
+
+model TeamMember {
+  id     String @id @default(uuid()) @db.Uuid
+  teamId String @db.Uuid
+  team   Team   @relation(fields: [teamId], references: [id])
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+
+  role     TeamMemberRole @default(MEMBER)
+  joinedAt DateTime       @default(now())
+
+  @@unique([teamId, userId])
+  // Enforcement of One Team Per Event is done in domain logic, not schema, since Users can participate in multiple Events.
+  @@map("team_members")
+}
+
+model TeamInvite {
+  id        String       @id @default(uuid()) @db.Uuid
+  teamId    String       @db.Uuid
+  team      Team         @relation(fields: [teamId], references: [id])
+  email     String
+  status    InviteStatus @default(PENDING)
+  invitedBy String       @db.Uuid // userId
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@map("team_invites")
+}
+
+model Submission {
+  id                 String            @id @default(uuid()) @db.Uuid
+  teamId             String            @db.Uuid
+  team               Team              @relation(fields: [teamId], references: [id])
+  problemStatementId String?           @db.Uuid
+  problemStatement   ProblemStatement? @relation(fields: [problemStatementId], references: [id])
+
+  status           SubmissionStatus    @default(DRAFT)
+  versions         SubmissionVersion[]
+  judgeAssignments JudgeAssignment[]
+
+  lockedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("submissions")
+}
+
+model SubmissionVersion {
+  id           String     @id @default(uuid()) @db.Uuid
+  submissionId String     @db.Uuid
+  submission   Submission @relation(fields: [submissionId], references: [id])
+
+  versionNumber Int
+  assets        SubmissionAsset[]
+
+  createdAt DateTime @default(now()) // Immutable
+
+  @@unique([submissionId, versionNumber])
+  @@map("submission_versions")
+}
+
+enum SubmissionAssetType {
+  REPOSITORY
+  DEMO
+  DOCUMENT
+  IMAGE
+  VIDEO
+}
+
+model SubmissionAsset {
+  id                  String            @id @default(uuid()) @db.Uuid
+  submissionVersionId String            @db.Uuid
+  submissionVersion   SubmissionVersion @relation(fields: [submissionVersionId], references: [id])
+
+  type SubmissionAssetType
+  url  String
+
+  @@map("submission_assets")
+}
+
+// ------------------------------------------------------
+// Judging & Scoring
+// ------------------------------------------------------
+
+model ScorecardTemplate {
+  id      String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  event   Event  @relation(fields: [eventId], references: [id])
+  name    String
+
+  sections ScorecardSection[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("scorecard_templates")
+}
+
+model ScorecardSection {
+  id         String            @id @default(uuid()) @db.Uuid
+  templateId String            @db.Uuid
+  template   ScorecardTemplate @relation(fields: [templateId], references: [id])
+  name       String
+
+  criteria ScorecardCriterion[]
+
+  @@map("scorecard_sections")
+}
+
+model ScorecardCriterion {
+  id        String           @id @default(uuid()) @db.Uuid
+  sectionId String           @db.Uuid
+  section   ScorecardSection @relation(fields: [sectionId], references: [id])
+
+  name            String // e.g. "Innovation"
+  weight          Float // e.g. 0.30 for 30%
+  minScore        Float   @default(0)
+  maxScore        Float // e.g. 10
+  remarksRequired Boolean @default(false)
+
+  judgeScores JudgeScore[]
+
+  @@map("scorecard_criteria")
+}
+
+model JudgeAssignment {
+  id      String @id @default(uuid()) @db.Uuid
+  judgeId String @db.Uuid
+  judge   User   @relation(fields: [judgeId], references: [id])
+
+  // Can assign to a specific submission or a whole track
+  submissionId String?         @db.Uuid
+  submission   Submission?     @relation(fields: [submissionId], references: [id])
+  trackId      String?         @db.Uuid
+  track        HackathonTrack? @relation(fields: [trackId], references: [id])
+
+  status JudgeAssignmentStatus @default(ASSIGNED)
+
+  scores JudgeScore[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("judge_assignments")
+}
+
+model JudgeScore {
+  id           String             @id @default(uuid()) @db.Uuid
+  assignmentId String             @db.Uuid
+  assignment   JudgeAssignment    @relation(fields: [assignmentId], references: [id])
+  criterionId  String             @db.Uuid
+  criterion    ScorecardCriterion @relation(fields: [criterionId], references: [id])
+
+  score   Float
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([assignmentId, criterionId]) // One score per criterion per assignment
+  @@map("judge_scores")
+}
+
+// ------------------------------------------------------
+// Leaderboard
+// ------------------------------------------------------
+
+model LeaderboardRule {
+  id      String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  event   Event  @relation(fields: [eventId], references: [id])
+
+  priority  Int // 1 = first tie breaker, 2 = second, etc.
+  criterion String // "Highest_Innovation_Score", "Earliest_Final_Submission"
+  order     String @default("DESC") // ASC or DESC
+
+  @@unique([eventId, priority])
+  @@map("leaderboard_rules")
+}
+
+model Leaderboard {
+  id      String  @id @default(uuid()) @db.Uuid
+  eventId String  @db.Uuid
+  event   Event   @relation(fields: [eventId], references: [id])
+  trackId String? @db.Uuid // Null if global leaderboard
+  teamId  String  @db.Uuid
+  // No relation to Team due to cross-references, we handle mapping in code or add relations carefully later if needed.
+
+  rank           Int
+  totalScore     Float
+  averageScore   Float
+  judgeCount     Int
+  tieBreakerData Json?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, trackId, teamId])
+  @@map("leaderboards")
+}
+
+// ------------------------------------------------------
+// Mentors (Stub for Backlog)
+// ------------------------------------------------------
+model MentorAssignment {
+  id       String @id @default(uuid()) @db.Uuid
+  eventId  String @db.Uuid
+  event    Event  @relation(fields: [eventId], references: [id])
+  mentorId String @db.Uuid
+  mentor   User   @relation(fields: [mentorId], references: [id])
+
+  teamId String? @db.Uuid
+  team   Team?   @relation(fields: [teamId], references: [id])
+
+  notes     String?
+  available Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  sessions MentorSession[]
+
+  @@map("mentor_assignments")
+}
+
+model MentorSession {
+  id           String           @id @default(uuid()) @db.Uuid
+  assignmentId String           @db.Uuid
+  assignment   MentorAssignment @relation(fields: [assignmentId], references: [id])
+
+  scheduledAt DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+
+  feedbacks MentorFeedback[]
+
+  @@map("mentor_sessions")
+}
+
+model MentorFeedback {
+  id        String        @id @default(uuid()) @db.Uuid
+  sessionId String        @db.Uuid
+  session   MentorSession @relation(fields: [sessionId], references: [id])
+
+  authorId String @db.Uuid
+  author   User   @relation("UserMentorFeedbacks", fields: [authorId], references: [id])
+
+  rating   Int?
+  comments String
+
+  @@map("mentor_feedbacks")
+}
+
+// ------------------------------------------------------
+// Payment & Transactions
+// ------------------------------------------------------
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id                    String        @id @default(uuid()) @db.Uuid
+  publicId              String        @unique @default(dbgenerated("concat('pay_', encode(gen_random_bytes(12), 'hex'))"))
+  organizationId        String        @db.Uuid
+  eventId               String?       @db.Uuid
+  userId                String?       @db.Uuid
+  registrationId        String?       @db.Uuid
+  amount                Float
+  currency              String        @default("USD")
+  status                PaymentStatus @default(PENDING)
+  provider              String // e.g. "STRIPE", "RAZORPAY"
+  providerTransactionId String?
+  metadata              Json          @default("{}")
+
+  // Relations and Timestamps
+  organization Organization @relation(fields: [organizationId], references: [id])
+  event        Event?       @relation(fields: [eventId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("payments")
+}

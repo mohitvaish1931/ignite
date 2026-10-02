@@ -1,0 +1,14 @@
+@layer base {
+  :root {
+    /* Motion Durations */
+    --motion-duration-fast: 150ms;
+    --motion-duration-normal: 300ms;
+    --motion-duration-slow: 500ms;
+
+    /* Motion Easing */
+    --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --motion-ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-ease-page: cubic-bezier(0.8, 0, 0.2, 1);
+    --motion-ease-modal: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}

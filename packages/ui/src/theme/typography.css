@@ -1,0 +1,52 @@
+@layer base {
+  :root {
+    /* Typography Scale */
+    --text-display-size: 4.5rem;
+    --text-display-line-height: 1.1;
+    --text-display-weight: 800;
+    
+    --text-h1-size: 3rem;
+    --text-h1-line-height: 1.2;
+    --text-h1-weight: 700;
+    
+    --text-h2-size: 2.25rem;
+    --text-h2-line-height: 1.25;
+    --text-h2-weight: 700;
+    
+    --text-h3-size: 1.5rem;
+    --text-h3-line-height: 1.33;
+    --text-h3-weight: 600;
+    
+    --text-body-size: 1rem;
+    --text-body-line-height: 1.5;
+    --text-body-weight: 400;
+    
+    --text-small-size: 0.875rem;
+    --text-small-line-height: 1.4;
+    --text-small-weight: 400;
+
+    --text-caption-size: 0.75rem;
+    --text-caption-line-height: 1.3;
+    --text-caption-weight: 400;
+
+    --text-code-size: 0.875rem;
+    --text-code-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  body {
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-line-height);
+    font-weight: var(--text-body-weight);
+    color: hsl(var(--foreground));
+  }
+
+  h1 { font-size: var(--text-h1-size); line-height: var(--text-h1-line-height); font-weight: var(--text-h1-weight); }
+  h2 { font-size: var(--text-h2-size); line-height: var(--text-h2-line-height); font-weight: var(--text-h2-weight); }
+  h3 { font-size: var(--text-h3-size); line-height: var(--text-h3-line-height); font-weight: var(--text-h3-weight); }
+  
+  .text-display { font-size: var(--text-display-size); line-height: var(--text-display-line-height); font-weight: var(--text-display-weight); }
+  .text-small { font-size: var(--text-small-size); line-height: var(--text-small-line-height); }
+  .text-caption { font-size: var(--text-caption-size); line-height: var(--text-caption-line-height); }
+  code { font-family: var(--text-code-family); font-size: var(--text-code-size); }
+}
