@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* Space Grotesk is the design's body face; font-manrope is kept as an alias for older markup */
+  --font-sans: var(--font-grotesk);
+  --font-manrope: var(--font-grotesk);
+  --font-orbitron: var(--font-orbitron);
+  --font-pixel: var(--font-pixel);
+  --font-hud: var(--font-hud);
+  --font-grotesk: var(--font-grotesk);
+}
+
+:root {
+  --background: #030408;
+  --foreground: #f8fafc;
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---------- IEEE IGNITE '26 design system for inner pages ---------- */
+@layer components {
+  .ignite-panel {
+    @apply relative rounded-sm border border-white/10 bg-[#07080d]/80 backdrop-blur-md;
+  }
+  .ignite-panel-hover {
+    @apply transition-colors duration-300 hover:border-orange-500/40;
+  }
+  .ignite-input {
+    @apply w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-orange-500/70 focus:ring-1 focus:ring-orange-500/40;
+  }
+  .ignite-input option {
+    background: #07080d;
+  }
+  .ignite-label {
+    @apply mb-1.5 block font-hud text-xs font-bold uppercase tracking-[0.2em] text-slate-400;
+  }
+  .ignite-eyebrow {
+    @apply flex items-center gap-3 font-hud text-xs font-bold uppercase tracking-[0.35em] text-orange-400;
+  }
+  .ignite-title {
+    @apply font-orbitron font-black uppercase tracking-wider text-white;
+  }
+  .ignite-spinner {
+    @apply h-12 w-12 animate-spin rounded-full border-4 border-orange-500/20 border-t-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.35)];
+  }
+  .ignite-link {
+    @apply font-hud text-sm font-bold uppercase tracking-widest text-orange-400 transition-colors hover:text-orange-300;
+  }
+}
+
+/* ---------- IEEE IGNITE '26 hero: orbital rings, radar & ignition animations ---------- */
+@keyframes ignite-orbit-1 {
+  from { transform: translate(-50%, -50%) rotate(24deg); }
+  to { transform: translate(-50%, -50%) rotate(384deg); }
+}
+@keyframes ignite-orbit-2 {
+  from { transform: translate(-50%, -50%) rotate(325deg); }
+  to { transform: translate(-50%, -50%) rotate(-35deg); }
+}
+@keyframes ignite-radar {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes ignite-core {
+  0%, 100% { opacity: 0.45; transform: translate(-50%, -50%) scale(0.96); filter: blur(35px) brightness(0.95); }
+  50% { opacity: 0.85; transform: translate(-50%, -50%) scale(1.12); filter: blur(48px) brightness(1.35); }
+}
+@keyframes ignite-plume {
+  0%, 100% { opacity: 0.88; transform: scaleY(1) scaleX(1); filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.9)); }
+  50% { opacity: 1; transform: scaleY(1.14) scaleX(1.18); filter: drop-shadow(0 0 16px rgba(255, 160, 40, 1)) drop-shadow(0 0 30px rgba(255, 90, 0, 0.8)); }
+}
+@keyframes ignite-glint {
+  0% { transform: translateX(-150%) skewX(-25deg); opacity: 0; }
+  20% { opacity: 0.35; }
+  40% { transform: translateX(250%) skewX(-25deg); opacity: 0; }
+  100% { transform: translateX(250%) skewX(-25deg); opacity: 0; }
+}
+
+.ignite-orbit-1 { animation: ignite-orbit-1 45s linear infinite; }
+.ignite-orbit-2 { animation: ignite-orbit-2 58s linear infinite; }
+.ignite-radar { animation: ignite-radar 24s linear infinite; }
+.ignite-core { animation: ignite-core 5.5s ease-in-out infinite; }
+.ignite-plume { animation: ignite-plume 1.9s ease-in-out infinite; }
+.ignite-glint { animation: ignite-glint 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+.ignite-pixel-dates {
+  font-family: var(--font-pixel), monospace;
+  font-size: clamp(0.62rem, 1.8vw, 0.95rem);
+  letter-spacing: 0.22em;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.55), 0 0 18px rgba(255, 140, 0, 0.4);
+}
+
+/* Cyber CTA buttons */
+.ignite-btn-primary {
+  background: linear-gradient(135deg, #ff8400 0%, #ff5500 50%, #d83a00 100%);
+  box-shadow: 0 0 20px rgba(255, 120, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ignite-btn-primary:hover {
+  box-shadow: 0 0 32px rgba(255, 130, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transform: translateY(-2px);
+}
+.ignite-btn-primary:disabled,
+.ignite-btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+.ignite-btn-secondary {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ignite-btn-secondary:hover {
+  border-color: rgba(255, 160, 40, 0.8);
+  background: rgba(255, 140, 0, 0.12);
+  box-shadow: 0 0 22px rgba(255, 140, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+/* HUD corner brackets */
+.ignite-hud-bracket { position: relative; }
+.ignite-hud-bracket::before,
+.ignite-hud-bracket::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.ignite-hud-bracket::before {
+  top: 0;
+  left: 0;
+  border-top: 1.5px solid rgba(255, 150, 40, 0.6);
+  border-left: 1.5px solid rgba(255, 150, 40, 0.6);
+}
+.ignite-hud-bracket::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 1.5px solid rgba(255, 150, 40, 0.6);
+  border-right: 1.5px solid rgba(255, 150, 40, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ignite-orbit-1, .ignite-orbit-2, .ignite-radar, .ignite-core, .ignite-plume, .ignite-glint {
+    animation: none;
+  }
+}
+
+/* ---------- Print: the hackathon rulebook prints as a clean light document ---------- */
+@media print {
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; color: #111 !important; }
+  .rulebook * {
+    color: #111 !important;
+    background: transparent !important;
+    border-color: #d4d4d8 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  .rulebook .print-accent { color: #c2410c !important; }
+  .rulebook .ignite-hud-bracket::before,
+  .rulebook .ignite-hud-bracket::after { display: none; }
+  .rulebook section { break-inside: avoid; }
+}
