@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Accounts, registration and database code, switched off for now (see _backend/README.md)
+    "_backend/**",
   ]),
 ]);
 

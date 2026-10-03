@@ -9,8 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@project-organizer/sdk": "*",
-    "@project-organizer/ui": "*",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.424.0",
     "next": "16.2.12",
@@ -27,5 +25,10 @@
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "disabledDependencies": {
+    "@project-organizer/sdk": "*",
+    "@project-organizer/ui": "*"
+  },
+  "disabledDependenciesNote": "Database/admin packages, unused while the site is frontend only. Move back into dependencies with the code in _backend/ (see _backend/README.md)."
 }

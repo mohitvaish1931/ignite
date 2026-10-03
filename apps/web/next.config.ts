@@ -21,7 +21,15 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     // The hackathon rulebook moved under /rulebooks with the other event rulebooks
-    return [{ source: "/hackathons/rulebook", destination: "/rulebooks/ieee-ignite-hackathon-2026", permanent: false }];
+    return [
+      { source: "/hackathons/rulebook", destination: "/rulebooks/ieee-ignite-hackathon-2026", permanent: false },
+      // Accounts are switched off for now (see _backend/README.md): old account links go to the events list
+      ...["/login", "/reset-password", "/dashboard", "/teams", "/teams/:id", "/jury"].map((source) => ({
+        source,
+        destination: "/events",
+        permanent: false,
+      })),
+    ];
   },
 };
 

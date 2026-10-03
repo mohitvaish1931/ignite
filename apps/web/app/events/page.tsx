@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Calendar, ChevronRight, MapPin, Trophy, Users } from "lucide-react";
-import { getPublicEvents } from "../actions/events";
+// Events are served from lib/events.ts while the database is switched off (see _backend/README.md)
+// import { getPublicEvents } from "../actions/events";
+import { EVENTS, type SiteEvent } from "../../lib/events";
 import HackathonAirlock from "../components/HackathonAirlock";
 import { isHackathonEvent } from "../../lib/hackathon-rules";
 import { getGuide } from "../../lib/guides";
@@ -16,29 +19,14 @@ const TABS = [FLAGSHIP, HACKATHONS];
 const CARD_CLIP =
   "polygon(15px 0, 35% 0, 40% 18px, 60% 18px, 65% 0, calc(100% - 15px) 0, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px), 0 15px)";
 
-type PublicEvent = {
-  id: string;
-  name: string;
-  slug: string;
-  state: string;
-  startAt: string | Date;
-  endAt: string | Date;
-  summary: string | null;
-  imageUrl: string | null;
-  capacity: number | null;
-  category?: { name: string } | null;
-  _count: { hackathonTracks: number; registrations: number };
-};
-
 const formatDate = (d: string | Date) =>
-  new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+  new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
 
-function EventCard({ event, index }: { event: PublicEvent; index: number }) {
+function EventCard({ event, index }: { event: SiteEvent; index: number }) {
   const isHackathon = isHackathonEvent(event);
   const guide = getGuide(event.slug);
   const noRegistration = guide?.registration.mode === "none";
   const externalForm = guide?.registration.mode === "external";
-  const spotsLeft = event.capacity ? Math.max(event.capacity - event._count.registrations, 0) : null;
   const status =
     event.state === "LIVE" ? { label: "LIVE NOW", className: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" }
     : event.state === "REGISTRATION_OPEN" ? { label: "REG. OPEN", className: "text-orange-300 border-orange-500/40 bg-orange-500/10" }
@@ -53,7 +41,7 @@ function EventCard({ event, index }: { event: PublicEvent; index: number }) {
     >
       <div className="absolute -inset-4 -z-20 bg-orange-600/20 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
       <Link
-        href={`/events/${event.id}`}
+        href={`/events/${event.slug}`}
         className="relative block h-full w-full bg-white/20 p-[1px] transition-colors duration-500 group-hover:bg-orange-500/60"
         style={{ clipPath: CARD_CLIP }}
         aria-label={`${event.name}: view details`}
@@ -116,7 +104,7 @@ function EventCard({ event, index }: { event: PublicEvent; index: number }) {
                   ? "NO REGISTRATION NEEDED"
                   // External form sign-ups aren't counted on this site
                   : externalForm ? (event.capacity ? `LIMITED TO ${event.capacity} SEATS` : "REGISTER VIA OFFICIAL FORM")
-                  : spotsLeft !== null ? `${spotsLeft} OF ${event.capacity} SPOTS LEFT` : `${event._count.registrations} REGISTERED`}
+                  : event.capacity ? `${event.capacity} SEATS` : "OPEN TO ALL"}
               </span>
             </div>
             <span className="mt-auto flex items-center gap-1 border-b border-orange-400/60 pb-0.5 font-orbitron text-[11px] tracking-widest text-orange-400 transition-colors group-hover:border-white group-hover:text-white">
@@ -130,23 +118,42 @@ function EventCard({ event, index }: { event: PublicEvent; index: number }) {
 }
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<PublicEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  // ?tab=hackathons opens straight into the hackathon airlock
-  const [activeTab, setActiveTab] = useState(() =>
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "hackathons" ? HACKATHONS : FLAGSHIP
-  );
+  return (
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col px-4 pb-20 pt-12 sm:px-8">
+      <div className="flex flex-col items-center">
+        <p className="ignite-eyebrow mb-4"><span className="text-orange-500/60">{"////"}</span> IEEE IGNITE &apos;26</p>
+        <h1
+          className="bg-clip-text text-center font-orbitron text-[56px] font-black tracking-widest text-transparent md:text-[96px]"
+          style={{
+            backgroundImage: "linear-gradient(to bottom, #ffffff 0%, #a0a0a0 50%, #404040 100%)",
+            filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.8))",
+          }}
+        >
+          EVENTS
+        </h1>
+      </div>
 
-  useEffect(() => {
-    getPublicEvents()
-      .then((res) => {
-        if (res.success && res.data) setEvents(res.data as unknown as PublicEvent[]);
-        else setFailed(true);
-      })
-      .catch(() => setFailed(true))
-      .finally(() => setLoading(false));
-  }, []);
+      {/* The open tab comes from the URL, which only the browser knows on a prerendered page */}
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center py-24">
+            <div className="ignite-spinner" />
+          </div>
+        }
+      >
+        <EventsBrowser />
+      </Suspense>
+    </div>
+  );
+}
+
+function EventsBrowser() {
+  const searchParams = useSearchParams();
+  // ?tab=hackathons opens straight into the hackathon airlock
+  const [activeTab, setActiveTab] = useState(() => (searchParams.get("tab") === "hackathons" ? HACKATHONS : FLAGSHIP));
+
+  // While the database is switched off the list is static (it used getPublicEvents() before)
+  const events = EVENTS;
 
   const selectTab = (tab: string) => {
     setActiveTab(tab);
@@ -163,79 +170,52 @@ export default function EventsPage() {
   const visible = activeTab === HACKATHONS ? hackathons : flagship;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col px-4 pb-20 pt-12 sm:px-8">
-      <div className="mb-12 flex flex-col items-center">
-        <p className="ignite-eyebrow mb-4"><span className="text-orange-500/60">{"////"}</span> IEEE IGNITE &apos;26</p>
-        <h1
-          className="bg-clip-text text-center font-orbitron text-[56px] font-black tracking-widest text-transparent md:text-[96px]"
-          style={{
-            backgroundImage: "linear-gradient(to bottom, #ffffff 0%, #a0a0a0 50%, #404040 100%)",
-            filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.8))",
-          }}
-        >
-          EVENTS
-        </h1>
-
-        {!loading && (
-          <div className="mt-8 flex max-w-4xl flex-wrap justify-center gap-x-10 gap-y-3 md:gap-x-16" role="tablist">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                role="tab"
-                aria-selected={activeTab === tab}
-                onClick={() => selectTab(tab)}
-                className={`relative pb-2 font-orbitron text-xs font-bold tracking-widest transition-colors md:text-sm ${
-                  activeTab === tab ? "text-orange-400" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                {tab}
-                {activeTab === tab && (
-                  <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 h-0.5 w-full bg-orange-500 shadow-[0_0_8px_#f97316]" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+    <>
+      <div className="mb-12 mt-8 flex max-w-4xl flex-wrap justify-center gap-x-10 gap-y-3 self-center md:gap-x-16" role="tablist">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
+            onClick={() => selectTab(tab)}
+            className={`relative pb-2 font-orbitron text-xs font-bold tracking-widest transition-colors md:text-sm ${
+              activeTab === tab ? "text-orange-400" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            {tab}
+            {activeTab === tab && (
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 h-0.5 w-full bg-orange-500 shadow-[0_0_8px_#f97316]" />
+            )}
+          </button>
+        ))}
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-24">
-          <div className="ignite-spinner" />
+      <div className="mb-8 flex w-full items-center">
+        <div className="relative mr-4 flex h-8 w-8 items-center justify-center">
+          <div className="absolute inset-0 rounded-full bg-orange-500/30 blur-md" />
+          <div className="relative z-10 h-4 w-4 bg-orange-400" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }} />
         </div>
-      ) : failed ? (
-        <div className="ignite-panel mx-auto max-w-lg p-10 text-center">
-          <p className="text-slate-300">We couldn&apos;t load events right now. Please refresh in a moment.</p>
+        <h2 className="font-orbitron text-xl font-bold uppercase tracking-widest text-white md:text-2xl">{activeTab}</h2>
+        <div className="relative mx-6 h-px flex-1 bg-white/20">
+          <div className="absolute left-0 top-0 h-px w-32 bg-gradient-to-r from-orange-500 to-transparent shadow-[0_0_10px_#f97316]" />
+        </div>
+        <span className="font-hud text-sm font-bold tracking-widest text-slate-500">{String(visible.length).padStart(2, "0")}</span>
+      </div>
+
+      {activeTab === HACKATHONS ? (
+        <HackathonAirlock hackathons={hackathons} />
+      ) : visible.length === 0 ? (
+        <div className="ignite-panel mx-auto w-full max-w-lg border-dashed p-12 text-center">
+          <Trophy className="mx-auto mb-4 h-12 w-12 text-slate-700" />
+          <p className="text-slate-400">No events here yet. Check back soon!</p>
         </div>
       ) : (
-        <>
-          <div className="mb-8 flex w-full items-center">
-            <div className="relative mr-4 flex h-8 w-8 items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-orange-500/30 blur-md" />
-              <div className="relative z-10 h-4 w-4 bg-orange-400" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }} />
-            </div>
-            <h2 className="font-orbitron text-xl font-bold uppercase tracking-widest text-white md:text-2xl">{activeTab}</h2>
-            <div className="relative mx-6 h-px flex-1 bg-white/20">
-              <div className="absolute left-0 top-0 h-px w-32 bg-gradient-to-r from-orange-500 to-transparent shadow-[0_0_10px_#f97316]" />
-            </div>
-            <span className="font-hud text-sm font-bold tracking-widest text-slate-500">{String(visible.length).padStart(2, "0")}</span>
-          </div>
-
-          {activeTab === HACKATHONS ? (
-            <HackathonAirlock hackathons={hackathons} />
-          ) : visible.length === 0 ? (
-            <div className="ignite-panel mx-auto w-full max-w-lg border-dashed p-12 text-center">
-              <Trophy className="mx-auto mb-4 h-12 w-12 text-slate-700" />
-              <p className="text-slate-400">No events here yet. Check back soon!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {visible.map((event, i) => (
-                <EventCard key={event.id} event={event} index={i} />
-              ))}
-            </div>
-          )}
-        </>
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {visible.map((event, i) => (
+            <EventCard key={event.slug} event={event} index={i} />
+          ))}
+        </div>
       )}
-    </div>
+    </>
   );
 }

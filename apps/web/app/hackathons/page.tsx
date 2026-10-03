@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { BookOpen, Calendar, ChevronRight, Clock, Code, Flame, IndianRupee, MapPin, ShieldAlert, Terminal, Trophy, Users } from "lucide-react";
-import { getPublicEvents } from "../actions/events";
-import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, RULEBOOK_PATH } from "../../lib/hackathon-rules";
+// Events are served from lib/events.ts while the database is switched off (see _backend/README.md)
+// import { getPublicEvents } from "../actions/events";
+import { EVENTS } from "../../lib/events";
+import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, RULEBOOK_PATH, isHackathonEvent } from "../../lib/hackathon-rules";
 
 function durationLabel(start: Date, end: Date) {
   const hours = Math.max(1, Math.round((end.getTime() - start.getTime()) / 3_600_000));
@@ -24,22 +26,8 @@ function dateRange(start: Date, end: Date) {
 }
 
 export default function HackathonsPage() {
-  const [hackathons, setHackathons] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getPublicEvents({ hackathonsOnly: true })
-      .then((res) => { if (res.success && res.data) setHackathons(res.data); })
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center">
-        <div className="ignite-spinner" />
-      </div>
-    );
-  }
+  // Static while the database is switched off (it used getPublicEvents({ hackathonsOnly: true }) before)
+  const hackathons = EVENTS.filter(isHackathonEvent);
 
   // Events arrive sorted by start date: feature the nearest one
   const [hackathon, ...others] = hackathons;
@@ -65,7 +53,8 @@ export default function HackathonsPage() {
 
   const startDate = new Date(hackathon.startAt);
   const endDate = new Date(hackathon.endAt);
-  const meta = (hackathon.settings?.metadata ?? {}) as Record<string, string | undefined>;
+  // Prize pool, hacker count etc. came from the event's admin settings in the database
+  const meta: Record<string, string | undefined> = {};
 
   return (
     <div className="overflow-hidden text-white">
@@ -225,7 +214,7 @@ export default function HackathonsPage() {
             <h2 className="ignite-title mb-8 text-3xl">More Hackathons</h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {others.map((h) => (
-                <Link key={h.id} href={`/events/${h.id}`} className="ignite-panel ignite-panel-hover ignite-hud-bracket group p-6">
+                <Link key={h.slug} href={`/events/${h.slug}`} className="ignite-panel ignite-panel-hover ignite-hud-bracket group p-6">
                   <p className="mb-2 font-hud text-xs font-bold uppercase tracking-[0.2em] text-orange-400">
                     {shortDate(h.startAt)} · {durationLabel(new Date(h.startAt), new Date(h.endAt))}
                   </p>

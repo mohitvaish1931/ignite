@@ -1,27 +1,24 @@
 import type { Metadata } from "next";
-import { db } from "@project-organizer/sdk";
+import { EVENTS, findEvent } from "../../../lib/events";
+
+// Events come from lib/events.ts while the database is switched off (the database version of
+// this layout is in _backend/app/events/[id]/layout.tsx). Every event page is built ahead of time;
+// old /events/<uuid> links still render on demand.
+export function generateStaticParams() {
+  return EVENTS.map((e) => ({ id: e.slug }));
+}
 
 // Gives each event page its own title and share preview
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  try {
-    // Pages open by id or by slug (rulebooks link to /events/<slug>)
-    const event = await db.event.findFirst({
-      where: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? { id } : { slug: id, isDeleted: false },
-      select: { name: true, summary: true, description: true, imageUrl: true, isDeleted: true },
-    });
-    if (!event || event.isDeleted) return { title: { absolute: "Event not found | IEEE IGNITE '26" } };
+  const event = findEvent(decodeURIComponent((await params).id));
+  if (!event) return { title: { absolute: "Event not found | IEEE IGNITE '26" } };
 
-    const description = (event.summary || event.description || `Register for ${event.name} at IEEE IGNITE '26.`).slice(0, 160);
-    return {
-      title: { absolute: `${event.name} | IEEE IGNITE '26` },
-      description,
-      openGraph: { title: event.name, description, ...(event.imageUrl ? { images: [event.imageUrl] } : {}) },
-    };
-  } catch {
-    // Invalid id or database hiccup: fall back to the section title
-    return { title: { absolute: "Event | IEEE IGNITE '26" } };
-  }
+  const description = (event.summary || event.description || `${event.name} at IEEE IGNITE '26.`).slice(0, 160);
+  return {
+    title: { absolute: `${event.name} | IEEE IGNITE '26` },
+    description,
+    openGraph: { title: event.name, description, ...(event.imageUrl ? { images: [event.imageUrl] } : {}) },
+  };
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {

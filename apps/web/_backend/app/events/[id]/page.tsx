@@ -1,15 +1,12 @@
 "use client";
 
-import React, { use, useSyncExternalStore } from "react";
+import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, BookOpen, Calendar, CalendarDays, Clock, Info, Lock, MapPin, Phone, ShieldCheck, Trophy, Users } from "lucide-react";
-// Accounts, on-site registration and QR tickets are switched off for now: events come from
-// lib/events.ts and sign-ups happen on each event's official form (see _backend/README.md)
-// import QRCode from "react-qr-code";
-// import { getEventDetails } from "../../actions/registrations";
-// import { RegistrationModal } from "../../components/RegistrationModal";
-import { findEvent, registrationClosedReason } from "../../../lib/events";
+import QRCode from "react-qr-code";
+import { ArrowLeft, BookOpen, Calendar, CalendarDays, CheckCircle2, Clock, Info, Lock, MapPin, Phone, ShieldCheck, Trophy, Users } from "lucide-react";
+import { getEventDetails } from "../../actions/registrations";
+import { RegistrationModal } from "../../components/RegistrationModal";
 import { MAX_TEAM_SIZE, isHackathonEvent } from "../../../lib/hackathon-rules";
 import { getGuide, guidePath, hasDocument } from "../../../lib/guides";
 import { ProgrammeTimeline } from "../../components/ProgrammeTimeline";
@@ -53,19 +50,44 @@ function durationLabel(start: string | Date, end: string | Date, timeZone?: stri
   return `${days} days`;
 }
 
-// Registration deadlines depend on "now", which only the browser knows on a prerendered page:
-// the server renders as if sign-ups are open, then the browser re-checks once it hydrates
-const noSubscribe = () => () => {};
-const pageLoadedAt = typeof window === "undefined" ? 0 : Date.now();
-function useBrowserNow() {
-  return useSyncExternalStore(noSubscribe, () => pageLoadedAt, () => null);
-}
-
 export default function EventDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const now = useBrowserNow();
-  // Accepts the slug or the event's old database id, so links shared earlier keep working
-  const eventData = findEvent(decodeURIComponent(resolvedParams.id));
+  const [eventData, setEventData] = useState<any>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [checkedIn, setCheckedIn] = useState(false);
+  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [closedReason, setClosedReason] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"register" | "join">("register");
+
+  useEffect(() => {
+    async function fetchDetails() {
+      const res = await getEventDetails(resolvedParams.id);
+      if (res.success && res.data) {
+        setEventData(res.data.event);
+        setIsRegistered(res.data.isRegistered);
+        setCheckedIn(res.data.checkedIn);
+        setQrToken(res.data.qrCode);
+        setClosedReason(res.data.registrationClosedReason);
+      }
+      setLoading(false);
+    }
+    fetchDetails();
+  }, [resolvedParams.id]);
+
+  const handleOpenModal = (mode: "register" | "join") => {
+    setModalMode(mode);
+    setModalOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="ignite-spinner" />
+      </div>
+    );
+  }
 
   if (!eventData) {
     return (
@@ -82,7 +104,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   const isHackathon = isHackathonEvent(eventData);
   // The event's official rulebook, when it has one
   const guide = getGuide(eventData.slug);
-  const closedReason = now === null ? null : registrationClosedReason(eventData, now);
+  const spotsLeft = eventData.capacity ? Math.max(eventData.capacity - eventData._count.registrations, 0) : null;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-8">
@@ -149,7 +171,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                     ? eventData.capacity
                       ? { icon: Users, label: "Capacity", value: `Limited to ${eventData.capacity} participants · register via the official form` }
                       : { icon: Users, label: "Registration", value: "Via the official registration form" }
-                    : { icon: Users, label: "Capacity", value: eventData.capacity ? `${eventData.capacity} seats` : "Open to all" },
+                    : { icon: Users, label: "Capacity", value: spotsLeft !== null ? `${spotsLeft} of ${eventData.capacity} spots left` : `${eventData._count.registrations} registered · Unlimited` },
                 { icon: MapPin, label: "Location", value: guide?.venue ?? "SKIT, Jaipur" },
                 ...(guide?.details ?? []).map((d) => ({ icon: Info, ...d })),
               ].map(({ icon: Icon, label, value }) => (
@@ -255,14 +277,23 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
               <h2 className="ignite-title mb-6 flex items-center gap-3 text-xl">
                 <Trophy className="h-5 w-5 text-orange-500" /> Tracks &amp; Problem Statements
               </h2>
-              <p className="text-slate-400">Problem statements and tracks are released at the start of the event. Your team picks one, and that choice is final.</p>
-              {/* Tracks were listed here from the database (see _backend/app/events/[id]/page.tsx) */}
+              {eventData.hackathonTracks.length === 0 ? (
+                <p className="text-slate-400">Problem statements and tracks are released at the start of the event on this portal. Your team picks one, and that choice is final.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {eventData.hackathonTracks.map((track: any) => (
+                    <div key={track.id} className="ignite-hud-bracket rounded-sm border border-white/10 bg-white/[0.03] p-5">
+                      <h3 className="mb-2 font-orbitron text-lg font-bold text-white">{track.title}</h3>
+                      <p className="text-sm text-slate-400">{track.description}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
         </div>
 
-        {/* Registration (the signed-in QR ticket view is switched off with accounts; it lives in
-            _backend/app/events/[id]/page.tsx) */}
+        {/* Registration / ticket */}
         <aside className="w-full lg:w-96">
           <div className="ignite-panel ignite-hud-bracket sticky top-28 p-8">
             {guide?.registration.mode === "none" ? (
@@ -294,6 +325,35 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                   </Link>
                 )}
               </div>
+            ) : isRegistered ? (
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15 text-emerald-400">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <h3 className="ignite-title mb-2 text-2xl">{checkedIn ? "Checked In" : "Registered"}</h3>
+                <p className="mb-6 text-sm text-slate-400">
+                  {checkedIn
+                    ? "You have been checked in. Enjoy the event!"
+                    : "You're all set! Show this QR code at the entry desk to check in."}
+                </p>
+                {qrToken && (
+                  <div className="mb-4 inline-block rounded-sm bg-white p-4 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                    <QRCode value={qrToken} size={170} />
+                  </div>
+                )}
+                {qrToken && (
+                  <p className="font-mono text-xs tracking-wider text-slate-500">TICKET ID: {qrToken.slice(0, 8).toUpperCase()}</p>
+                )}
+                {isHackathon && !checkedIn && (
+                  <p className="mt-6 text-sm text-slate-400">
+                    Bring your original college ID and a government photo ID for in-person verification.
+                  </p>
+                )}
+                <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2">
+                  <Link href="/dashboard" className="ignite-link">My dashboard</Link>
+                  {isHackathon && <Link href="/teams" className="ignite-link">Form a squad</Link>}
+                </div>
+              </div>
             ) : closedReason ? (
               <div>
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5">
@@ -307,7 +367,9 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                 <h3 className="ignite-title mb-3 text-2xl">Join the Event</h3>
                 <p className="mb-8 text-sm text-slate-400">
                   Secure your spot at {eventData.name}.
-                  {eventData.capacity ? ` Seats are limited to ${eventData.capacity}.` : ""}
+                  {guide?.registration.mode === "external"
+                    ? eventData.capacity ? ` Seats are limited to ${eventData.capacity}.` : ""
+                    : spotsLeft !== null ? ` ${spotsLeft} of ${eventData.capacity} spots left.` : ""}
                 </p>
                 <div className="space-y-4">
                   {guide?.registration.mode === "external" ? (
@@ -319,10 +381,12 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                       REGISTER NOW
                     </a>
                   ) : (
-                    // On-site registration is switched off with accounts (see _backend/README.md)
-                    <p className="rounded-sm border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-                      Registration details will be announced soon on the official IEEE IGNITE channels.
-                    </p>
+                    <button
+                      onClick={() => handleOpenModal("register")}
+                      className="ignite-btn-primary w-full rounded-sm py-4 font-orbitron text-base font-bold tracking-wider text-black"
+                    >
+                      REGISTER NOW
+                    </button>
                   )}
                   {/* Joining a team on this site is paused while registration runs on the ERP
                   {isHackathon && (
@@ -347,7 +411,6 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         </aside>
       </div>
 
-      {/* On-site registration form, switched off with accounts (see _backend/README.md)
       <RegistrationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -357,7 +420,6 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         agreement={guide?.agreementDetail ? { href: guidePath(guide.slug), detail: guide.agreementDetail } : undefined}
         studentsOnly={guide?.studentsOnly}
       />
-      */}
     </div>
   );
 }

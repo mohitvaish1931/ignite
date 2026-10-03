@@ -6,7 +6,8 @@ import Link from "next/link";
 import Starfield from "./Starfield";
 import { SkitLogo } from "./SkitLogo";
 
-type HeroUser = { firstName?: string | null } | null;
+// Accounts are switched off for now (see _backend/README.md); this was the signed-in user
+// type HeroUser = { firstName?: string | null } | null;
 
 const NAV_LINKS = [
   { label: "About", href: "#about", className: "hidden md:inline" },
@@ -66,7 +67,7 @@ function RocketFlare() {
   );
 }
 
-export default function IgniteHero({ user, onLogin }: { user: HeroUser; onLogin: () => void }) {
+export default function IgniteHero() {
   return (
     <section className="relative w-full bg-[#030408] font-grotesk text-white">
       <div className="relative flex w-full min-h-[100svh] flex-col overflow-hidden">
@@ -145,6 +146,7 @@ export default function IgniteHero({ user, onLogin }: { user: HeroUser; onLogin:
                   {link.label}
                 </a>
               ))}
+              {/* Accounts are switched off for now (see _backend/README.md)
               {user ? (
                 <Link href="/dashboard" className="whitespace-nowrap transition-colors hover:text-orange-400">
                   Dashboard
@@ -154,11 +156,12 @@ export default function IgniteHero({ user, onLogin }: { user: HeroUser; onLogin:
                   Login
                 </button>
               )}
+              */}
               <Link
                 href="/events"
                 className="whitespace-nowrap rounded border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-[10px] font-semibold tracking-wider text-orange-300 shadow-[0_0_10px_rgba(255,140,0,0.2)] transition-all hover:bg-orange-500 hover:text-black sm:text-xs"
               >
-                GET PASS
+                REGISTER
               </Link>
             </nav>
           </header>

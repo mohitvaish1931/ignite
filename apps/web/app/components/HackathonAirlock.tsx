@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,14 +8,13 @@ import { BookOpen, Calendar, ChevronRight, Users } from "lucide-react";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, MISSION_STEPS, RULEBOOK_PATH } from "../../lib/hackathon-rules";
 
 type Hackathon = {
-  id: string;
+  slug: string;
   name: string;
   summary?: string | null;
   state: string;
   startAt: string | Date;
   endAt: string | Date;
   capacity: number | null;
-  _count: { registrations: number; hackathonTracks: number };
 };
 
 type Phase = "closed" | "scanning" | "granted" | "open";
@@ -90,28 +89,29 @@ function DoorPanel({ side, phase }: { side: "left" | "right"; phase: Phase }) {
   );
 }
 
-/** Ticks once a second; kept in its own component so only the clock re-renders. */
+// "Now" only exists in the browser: the server (and the first browser render) get null and show
+// placeholders, then the clock ticks once a second. Keeps prerendered HTML and hydration in step.
+const subscribeToClock = (tick: () => void) => {
+  const timer = setInterval(tick, 1000);
+  return () => clearInterval(timer);
+};
+const currentSecond = () => Math.floor(Date.now() / 1000) * 1000;
 function useNow() {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return now;
+  return useSyncExternalStore(subscribeToClock, currentSecond, () => null);
 }
 
 function Countdown({ startAt, endAt }: { startAt: string | Date; endAt: string | Date }) {
   const now = useNow();
   const start = new Date(startAt).getTime();
   const end = new Date(endAt).getTime();
-  const live = now >= start && now < end;
-  const over = now >= end;
-  const diff = Math.max((live ? end : start) - now, 0);
+  const live = now !== null && now >= start && now < end;
+  const over = now !== null && now >= end;
+  const diff = now === null ? null : Math.max((live ? end : start) - now, 0);
   const units = [
-    { label: "Days", value: Math.floor(diff / 86_400_000) },
-    { label: "Hrs", value: Math.floor(diff / 3_600_000) % 24 },
-    { label: "Min", value: Math.floor(diff / 60_000) % 60 },
-    { label: "Sec", value: Math.floor(diff / 1000) % 60 },
+    { label: "Days", value: diff === null ? null : Math.floor(diff / 86_400_000) },
+    { label: "Hrs", value: diff === null ? null : Math.floor(diff / 3_600_000) % 24 },
+    { label: "Min", value: diff === null ? null : Math.floor(diff / 60_000) % 60 },
+    { label: "Sec", value: diff === null ? null : Math.floor(diff / 1000) % 60 },
   ];
 
   return (
@@ -123,7 +123,7 @@ function Countdown({ startAt, endAt }: { startAt: string | Date; endAt: string |
         <div className="grid grid-cols-4 gap-2">
           {units.map((u) => (
             <div key={u.label} className="rounded-sm border border-white/10 bg-black/50 px-1 py-2 text-center">
-              <div className="font-orbitron text-xl font-bold tabular-nums text-white sm:text-2xl">{String(u.value).padStart(2, "0")}</div>
+              <div className="font-orbitron text-xl font-bold tabular-nums text-white sm:text-2xl">{u.value === null ? "--" : String(u.value).padStart(2, "0")}</div>
               <div className="font-hud text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">{u.label}</div>
             </div>
           ))}
@@ -181,10 +181,10 @@ function BriefActions({ door }: { door?: boolean }) {
 
 /** What waits behind the door when there is one hackathon: its mission brief. */
 function MissionBrief({ hackathon }: { hackathon: Hackathon }) {
-  // Captured once so render stays pure; day granularity needs no ticking
-  const [now] = useState(() => Date.now());
+  // Days to launch; null on the server and first browser render (see useNow)
+  const now = useNow();
   const status = statusOf(hackathon);
-  const days = Math.ceil((new Date(hackathon.startAt).getTime() - now) / 86_400_000);
+  const days = now === null ? 0 : Math.ceil((new Date(hackathon.startAt).getTime() - now) / 86_400_000);
 
   return (
     <>
@@ -232,11 +232,10 @@ function ArenaList({ hackathons }: { hackathons: Hackathon[] }) {
       <div className="flex flex-col gap-2 sm:gap-3">
         {hackathons.map((h, i) => {
           const status = statusOf(h);
-          const spotsLeft = h.capacity ? Math.max(h.capacity - h._count.registrations, 0) : null;
           return (
-            <motion.div key={h.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.75 + i * 0.12 }}>
+            <motion.div key={h.slug} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.75 + i * 0.12 }}>
               <Link
-                href={`/events/${h.id}`}
+                href={`/events/${h.slug}`}
                 className="ignite-hud-bracket group flex items-center justify-between gap-3 rounded-sm border border-white/10 bg-black/50 p-3.5 text-left backdrop-blur-sm transition-colors hover:border-orange-500/60 hover:bg-orange-500/10 sm:p-4"
               >
                 <div className="min-w-0">
@@ -244,7 +243,7 @@ function ArenaList({ hackathons }: { hackathons: Hackathon[] }) {
                   <p className="truncate font-orbitron text-sm font-bold uppercase text-white sm:text-base">{h.name}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 font-hud text-[11px] font-semibold tracking-widest text-slate-400 sm:text-xs">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3 text-orange-500" />{shortDate(h.startAt)} - {shortDate(h.endAt)}</span>
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3 text-orange-500" />{spotsLeft !== null ? `${spotsLeft} left` : `${h._count.registrations} in`}</span>
+                    <span className="flex items-center gap-1"><Users className="h-3 w-3 text-orange-500" />{h.capacity ? `${h.capacity} seats` : "Open"}</span>
                   </div>
                 </div>
                 <span className="flex shrink-0 items-center gap-1 font-orbitron text-[11px] font-bold tracking-widest text-orange-400 transition-colors group-hover:text-white sm:text-xs">
@@ -256,7 +255,9 @@ function ArenaList({ hackathons }: { hackathons: Hackathon[] }) {
         })}
       </div>
       <div className="mt-auto flex flex-wrap justify-center gap-2 pt-4 sm:gap-3 sm:pt-6">
+        {/* Team formation on this site is switched off with accounts (see _backend/README.md)
         <Link href="/teams" className="ignite-btn-primary rounded-sm px-5 py-2.5 font-orbitron text-[11px] font-bold tracking-wider text-black sm:text-xs">FORM A SQUAD</Link>
+        */}
         <Link href={RULEBOOK_PATH} className="ignite-btn-secondary rounded-sm px-5 py-2.5 font-orbitron text-[11px] font-bold tracking-wider text-neutral-200 sm:text-xs">RULEBOOK</Link>
       </div>
     </>

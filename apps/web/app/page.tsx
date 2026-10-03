@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Code, MapPin, Mic, Presentation, RadioTower, UsersRound } from "lucide-react";
-import { getCurrentUser } from "./actions/auth";
+// Accounts are switched off for now (see _backend/README.md)
+// import { getCurrentUser } from "./actions/auth";
 import IgniteHero from "./components/IgniteHero";
 import CommitteeCard from "./components/CommitteeCard";
 
@@ -138,20 +139,20 @@ function useCountdown(target: number) {
 }
 
 export default function LandingPage() {
-  const [user, setUser] = useState<{ firstName?: string | null } | null>(null);
   const countdown = useCountdown(IGNITION_AT);
 
-  useEffect(() => {
-    getCurrentUser()
-      .then((res) => { if (res.success && res.user) setUser(res.user); })
-      .catch(() => {});
-  }, []);
-
-  const openLogin = () => window.dispatchEvent(new Event("ignite:open-login"));
+  // Accounts are switched off for now (see _backend/README.md)
+  // const [user, setUser] = useState<{ firstName?: string | null } | null>(null);
+  // useEffect(() => {
+  //   getCurrentUser()
+  //     .then((res) => { if (res.success && res.user) setUser(res.user); })
+  //     .catch(() => {});
+  // }, []);
+  // const openLogin = () => window.dispatchEvent(new Event("ignite:open-login"));
 
   return (
     <div className="relative w-full min-h-screen overflow-x-hidden bg-[#020306] text-white font-grotesk selection:bg-orange-500/30">
-      <IgniteHero user={user} onLogin={openLogin} />
+      <IgniteHero />
 
       {/* ===================== ABOUT ===================== */}
       <section id="about" className="relative w-full py-24 px-6 md:px-20 border-t border-orange-500/20 bg-gradient-to-b from-[#020306] to-[#07080c]">
@@ -307,6 +308,10 @@ export default function LandingPage() {
             <Link href="/events" className="ignite-btn-primary flex items-center gap-2 px-10 py-4 rounded-sm font-orbitron font-bold text-sm tracking-widest uppercase text-black">
               Register Now <ChevronRight className="w-4 h-4" />
             </Link>
+            <Link href="/rulebooks" className="ignite-btn-secondary px-10 py-4 rounded-sm font-orbitron font-bold text-sm tracking-widest uppercase text-neutral-200">
+              Rulebooks
+            </Link>
+            {/* Accounts are switched off for now (see _backend/README.md)
             {user ? (
               <Link href="/dashboard" className="ignite-btn-secondary px-10 py-4 rounded-sm font-orbitron font-bold text-sm tracking-widest uppercase text-neutral-200">
                 My Pass &amp; QR
@@ -316,6 +321,7 @@ export default function LandingPage() {
                 Login
               </button>
             )}
+            */}
           </div>
         </div>
       </section>
