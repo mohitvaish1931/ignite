@@ -99,7 +99,7 @@ const COMMITTEE = [
     title: "Organizing Committee",
     members: [
       { name: "Divyansh Batti", role: "Overall Support", authLevel: "STAFF", imagePath: "/team/divyansh-batti.webp" },
-      { name: "Kratika Sharma", role: "Round Table Coordinator", authLevel: "STAFF" },
+      { name: "Shaurya", role: "Organizing Committee", authLevel: "STAFF", imagePath: "/team/shaurya.webp" },
       { name: "Aashi Goyal", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/aashi-goyal.webp" },
       { name: "Aditya Mangal", role: "Panel Discussion Coordinator", authLevel: "STAFF" },
       { name: "Mohit Swami", role: "Panel Discussion Coordinator", authLevel: "STAFF" },
@@ -107,7 +107,7 @@ const COMMITTEE = [
       { name: "Vineet Sharma", role: "Symposium Coordinator", authLevel: "STAFF" },
       { name: "Shivang Gupta", role: "Symposium Coordinator", authLevel: "STAFF" },
       { name: "Nainika", role: "Organizing Committee", authLevel: "STAFF" },
-      { name: "Shaurya", role: "Organizing Committee", authLevel: "STAFF", imagePath: "/team/shaurya.webp" },
+      { name: "Kratika Sharma", role: "Round Table Coordinator", authLevel: "STAFF" },
       { name: "Ananya", role: "Video Editor", authLevel: "STAFF", imagePath: "/team/ananya.webp" },
       { name: "Divyansh Maheshwari", role: "Video Editor", authLevel: "STAFF" },
     ],
