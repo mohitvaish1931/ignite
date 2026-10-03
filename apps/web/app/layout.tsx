@@ -26,6 +26,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 import { Header } from "./components/Header";
+import { INTRO_SEEN_SCRIPT } from "../lib/intro";
 import SpaceBackdrop from "./components/SpaceBackdrop";
 
 const title = "IEEE IGNITE '26 - Flagship Technical Conclave";
@@ -58,6 +59,8 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#030408] text-slate-200 font-sans overflow-x-hidden selection:bg-orange-500/30" suppressHydrationWarning>
+        {/* First in <body> so it runs before the home intro is painted: hides it once seen this session */}
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SEEN_SCRIPT }} />
         <SpaceBackdrop />
         <Header />
 

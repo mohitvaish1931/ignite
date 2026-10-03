@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Starfield from "./Starfield";
 import { SkitLogo } from "./SkitLogo";
+import HeroRails from "./HeroRails";
 
 // Accounts are switched off for now (see _backend/README.md); this was the signed-in user
 // type HeroUser = { firstName?: string | null } | null;
@@ -99,6 +100,15 @@ export default function IgniteHero() {
           <div className="absolute bottom-0 inset-x-0 h-52 bg-gradient-to-t from-[#020306] via-[#020306] to-transparent" />
         </div>
 
+        {/* Soft nebula glow at the far left and right, so wide screens don't end in flat black */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse 38% 55% at 0% 52%, rgba(249,115,22,0.09), transparent 70%), radial-gradient(ellipse 38% 55% at 100% 52%, rgba(249,115,22,0.09), transparent 70%)",
+          }}
+        />
+
         {/* LAYERS 3-5: breathing amber core, golden orbital rings, radar sweep, glint and rocket flare */}
         <PosterCover className="z-20">
           <div className="absolute left-1/2 top-[43.5%] w-[42.7cqw] h-[42.7cqw] rounded-full bg-gradient-to-tr from-amber-600/40 via-orange-500/30 to-amber-300/20 ignite-core" />
@@ -122,7 +132,7 @@ export default function IgniteHero() {
         </PosterCover>
 
         {/* LAYER 6: landing content & technical HUD */}
-        <div className="relative z-30 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-between px-4 pt-4 pb-4 sm:px-8">
+        <div className="relative z-30 flex w-full flex-1 flex-col justify-between px-4 pt-4 pb-4 sm:px-8 xl:px-[clamp(40px,3.5vw,72px)]">
           <h1 className="sr-only">IEEE IGNITE &apos;26 - Annual Flagship Technical Conclave &amp; Global Hackathon</h1>
 
           {/* Navigation header */}
@@ -225,6 +235,9 @@ export default function IgniteHero() {
             </div>
           </footer>
         </div>
+
+        {/* Wide screens: event lineup and launch countdown either side of the poster */}
+        <HeroRails />
 
         {/* Subtle vignette framing for deep cosmic edge contrast */}
         <div className="pointer-events-none absolute inset-0 z-[35] shadow-[inset_0_0_55px_rgba(2,3,6,0.9),inset_0_0_120px_rgba(0,0,0,0.65)]" />

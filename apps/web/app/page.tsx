@@ -7,6 +7,7 @@ import { ChevronRight, Code, MapPin, Mic, Presentation, RadioTower, UsersRound }
 // Accounts are switched off for now (see _backend/README.md)
 // import { getCurrentUser } from "./actions/auth";
 import IgniteHero from "./components/IgniteHero";
+import IntroLoader from "./components/IntroLoader";
 import CommitteeCard from "./components/CommitteeCard";
 
 // The fest opens with Symposium Day 1: 12 October 2026, 11:00 IST
@@ -152,6 +153,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative w-full min-h-screen overflow-x-hidden bg-[#020306] text-white font-grotesk selection:bg-orange-500/30">
+      <IntroLoader />
       <IgniteHero />
 
       {/* ===================== ABOUT ===================== */}
