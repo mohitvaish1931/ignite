@@ -1,22 +1,64 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { SkitLogo } from "./SkitLogo";
+import { HACKATHON_SLUG } from "../../lib/hackathon-rules";
 
 // Frontend only for now: registrations run on the SKIT ERP / official forms, so there is no
 // login here. The full header with login, logout and account links is parked in
 // _backend/app/components/Header.tsx (see _backend/README.md).
 
+// The airlock on the Events page is the hackathon's main entry
+const HACKATHON_ENTRY = "/events?tab=hackathons";
+
 const PUBLIC_LINKS = [
   { label: "Home", href: "/" },
   { label: "Events", href: "/events" },
-  { label: "Hackathons", href: "/hackathons" },
+  { label: "Hackathons", href: HACKATHON_ENTRY },
   { label: "Rulebooks", href: "/rulebooks" },
 ];
+
+/** The header link to light up; every hackathon page counts as Hackathons rather than Events. */
+function activeHref(pathname: string, tab: string | null) {
+  if (pathname === "/") return "/";
+  if (pathname.startsWith("/hackathons") || pathname === `/events/${HACKATHON_SLUG}` || (pathname === "/events" && tab === "hackathons")) return HACKATHON_ENTRY;
+  return PUBLIC_LINKS.find((link) => link.href !== "/" && pathname.startsWith(link.href))?.href ?? null;
+}
+
+type LinkVariant = "bar" | "menu";
+
+function NavLinkList({ variant, tab, onNavigate }: { variant: LinkVariant; tab: string | null; onNavigate?: () => void }) {
+  const active = activeHref(usePathname(), tab);
+  return PUBLIC_LINKS.map((link) => {
+    const isActive = link.href === active;
+    const className =
+      variant === "bar"
+        ? `relative py-1 transition-colors ${isActive ? "text-orange-400 after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-orange-500 after:shadow-[0_0_8px_#f97316]" : "text-slate-300 hover:text-orange-400"}`
+        : `rounded-sm px-3 py-3 transition-colors ${isActive ? "bg-orange-500/10 text-orange-400" : "text-slate-300 hover:bg-white/5 hover:text-orange-400"}`;
+    return (
+      <Link key={link.href} href={link.href} className={className} onClick={onNavigate}>
+        {link.label}
+      </Link>
+    );
+  });
+}
+
+function TabAwareNavLinks({ variant, onNavigate }: { variant: LinkVariant; onNavigate?: () => void }) {
+  return <NavLinkList variant={variant} tab={useSearchParams().get("tab")} onNavigate={onNavigate} />;
+}
+
+/** The ?tab= query only exists in the browser on prerendered pages, so the tab-aware links sit in their own Suspense boundary. */
+function NavLinks({ variant, onNavigate }: { variant: LinkVariant; onNavigate?: () => void }) {
+  return (
+    <Suspense fallback={<NavLinkList variant={variant} tab={null} onNavigate={onNavigate} />}>
+      <TabAwareNavLinks variant={variant} onNavigate={onNavigate} />
+    </Suspense>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -29,10 +71,6 @@ export function Header() {
     setMenuPath(pathname);
     setMenuOpen(false);
   }
-
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const linkClass = (href: string) =>
-    `relative py-1 transition-colors ${isActive(href) ? "text-orange-400 after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:bg-orange-500 after:shadow-[0_0_8px_#f97316]" : "text-slate-300 hover:text-orange-400"}`;
 
   // The home page draws its own header inside the hero
   if (isHomePage) return null;
@@ -53,9 +91,7 @@ export function Header() {
           </div>
 
           <nav className="hidden items-center gap-7 font-hud text-sm font-semibold uppercase tracking-[0.2em] lg:flex">
-            {PUBLIC_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className={linkClass(link.href)}>{link.label}</Link>
-            ))}
+            <NavLinks variant="bar" />
           </nav>
 
           <div className="ml-auto flex items-center gap-5 font-hud text-sm font-semibold uppercase tracking-[0.2em]">
@@ -79,15 +115,8 @@ export function Header() {
         {menuOpen && (
           <nav className="border-t border-white/10 bg-[#030408]/95 px-4 py-4 font-hud text-sm font-semibold uppercase tracking-[0.2em] lg:hidden">
             <div className="flex flex-col gap-1">
-              {PUBLIC_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`rounded-sm px-3 py-3 transition-colors ${isActive(link.href) ? "bg-orange-500/10 text-orange-400" : "text-slate-300 hover:bg-white/5 hover:text-orange-400"}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {/* Close on tap too: Events <-> Hackathons only changes the ?tab= query, not the path */}
+              <NavLinks variant="menu" onNavigate={() => setMenuOpen(false)} />
             </div>
           </nav>
         )}

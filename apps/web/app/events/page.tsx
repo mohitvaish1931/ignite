@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -149,15 +149,15 @@ export default function EventsPage() {
 
 function EventsBrowser() {
   const searchParams = useSearchParams();
-  // ?tab=hackathons opens straight into the hackathon airlock
-  const [activeTab, setActiveTab] = useState(() => (searchParams.get("tab") === "hackathons" ? HACKATHONS : FLAGSHIP));
+  // The URL is the source of truth: ?tab=hackathons opens the hackathon airlock, so the header's
+  // Hackathons link switches tabs even when this page is already open
+  const activeTab = searchParams.get("tab") === "hackathons" ? HACKATHONS : FLAGSHIP;
 
   // While the database is switched off the list is static (it used getPublicEvents() before)
   const events = EVENTS;
 
   const selectTab = (tab: string) => {
-    setActiveTab(tab);
-    // Keep the URL shareable without adding history entries
+    // Keep the URL shareable without adding history entries; Next syncs useSearchParams with it
     const url = new URL(window.location.href);
     if (tab === HACKATHONS) url.searchParams.set("tab", "hackathons");
     else url.searchParams.delete("tab");
