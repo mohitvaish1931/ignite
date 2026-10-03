@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { EVENTS, findEvent } from "../../../lib/events";
+import { EVENTS, findEvent, photoUrl } from "../../../lib/events";
 
 // Events come from lib/events.ts while the database is switched off (the database version of
 // this layout is in _backend/app/events/[id]/layout.tsx). Every event page is built ahead of time;
@@ -17,7 +17,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: { absolute: `${event.name} | IEEE IGNITE '26` },
     description,
-    openGraph: { title: event.name, description, ...(event.imageUrl ? { images: [event.imageUrl] } : {}) },
+    // Share previews (WhatsApp, LinkedIn...) use the event's banner photo at the standard 1200x630
+    openGraph: { title: event.name, description, images: [{ url: photoUrl(event.images.banner, 1200, 630), width: 1200, height: 630 }] },
   };
 }
 

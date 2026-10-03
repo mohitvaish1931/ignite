@@ -9,6 +9,7 @@ import { ChevronRight, Code, MapPin, Mic, Presentation, RadioTower, UsersRound }
 import IgniteHero from "./components/IgniteHero";
 import IntroLoader from "./components/IntroLoader";
 import CommitteeCard from "./components/CommitteeCard";
+import { bannerImage, cardImage, findEvent } from "../lib/events";
 
 // The fest opens with Symposium Day 1: 12 October 2026, 11:00 IST
 const IGNITION_AT = new Date("2026-10-12T11:00:00+05:30").getTime();
@@ -22,6 +23,7 @@ const EVENTS = [
     venue: "7F’11 & ECL-06",
     text: "Recent advancements in RF, Microwave, EMI/EMC: expert sessions, hands-on workshops and a technical quiz.",
     href: "/events/ieee-ignite-symposium-2026",
+    slug: "ieee-ignite-symposium-2026",
   },
   {
     icon: UsersRound,
@@ -30,6 +32,7 @@ const EVENTS = [
     venue: "Community Hall, IDEA Lab",
     text: "“Leveraging Technology for a Better Tomorrow”: a keynote and an integrated round table on innovation, sustainability and society.",
     href: "/events/round-table-conference-2026",
+    slug: "round-table-conference-2026",
   },
   {
     icon: Mic,
@@ -38,6 +41,7 @@ const EVENTS = [
     venue: "JC Bose",
     text: "Experts share insights on emerging technologies, innovation and industry trends.",
     href: "/events/ieee-ignite-panel-discussion",
+    slug: "ieee-ignite-panel-discussion",
   },
   {
     icon: Code,
@@ -46,6 +50,7 @@ const EVENTS = [
     venue: "Indoor Sports Complex",
     text: "24 hours, fully offline: software & hardware builds by teams of 1-4, judged on a working demo.",
     href: "/events?tab=hackathons",
+    slug: "ieee-ignite-hackathon-2026",
     featured: true,
   },
   {
@@ -55,6 +60,7 @@ const EVENTS = [
     venue: "Indoor Sports Complex",
     text: "An expert talk held during the hackathon.",
     href: "/events/ieee-ignite-expert-talk",
+    slug: "ieee-ignite-expert-talk",
   },
 ];
 
@@ -182,13 +188,32 @@ export default function LandingPage() {
           <SectionEyebrow>THE LINEUP</SectionEyebrow>
           <h2 className="text-4xl md:text-5xl font-black font-orbitron mb-14 tracking-wider">IEEE IGNITE EVENTS</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {EVENTS.map(({ icon: Icon, title, date, venue, text, href, featured }) => (
+            {EVENTS.map(({ icon: Icon, title, date, venue, text, href, featured, slug }) => {
+              const event = findEvent(slug);
+              // The wide featured card uses the event's wide banner photo so it isn't stretched
+              const photo = event ? (featured ? bannerImage(event) : cardImage(event)) : null;
+              return (
               <Link
                 key={title}
                 href={href}
                 className={`ignite-hud-bracket group relative flex flex-col border border-white/10 border-t-orange-500/70 rounded-sm p-6 hover:bg-white/[0.06] transition-colors overflow-hidden ${featured ? "lg:col-span-2 bg-orange-500/[0.06]" : "bg-white/[0.03]"}`}
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                {photo && (
+                  <div className="relative -mx-6 -mt-6 mb-6 h-40 overflow-hidden border-b border-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      {...photo}
+                      sizes={featured ? "(max-width: 1024px) 100vw, 760px" : "(max-width: 640px) 100vw, 380px"}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover opacity-75 saturate-[0.85] transition-all duration-700 group-hover:scale-105 group-hover:opacity-100 group-hover:saturate-100"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07080c] via-[#07080c]/20 to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 bg-orange-500/10 mix-blend-overlay" />
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-4 mb-6">
                   <div className="w-12 h-12 rounded-full border border-orange-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                     <Icon className="w-5 h-5 text-orange-400 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]" />
@@ -204,7 +229,8 @@ export default function LandingPage() {
                   VIEW DETAILS <ChevronRight className="w-3 h-3" />
                 </span>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

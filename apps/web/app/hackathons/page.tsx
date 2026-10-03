@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { BookOpen, Calendar, ChevronRight, Clock, Code, Flame, IndianRupee, MapPin, ShieldAlert, Terminal, Trophy, Users } from "lucide-react";
 // Events are served from lib/events.ts while the database is switched off (see _backend/README.md)
 // import { getPublicEvents } from "../actions/events";
-import { EVENTS } from "../../lib/events";
+import { EVENTS, bannerImage } from "../../lib/events";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, RULEBOOK_PATH, isHackathonEvent } from "../../lib/hackathon-rules";
 
 function durationLabel(start: Date, end: Date) {
@@ -60,13 +60,11 @@ export default function HackathonsPage() {
     <div className="overflow-hidden text-white">
       {/* HERO */}
       <section className="relative flex min-h-[calc(100svh-5rem)] items-center px-4 pb-12 pt-8 sm:px-8">
-        {hackathon.imageUrl && (
-          <div className="absolute inset-0 -z-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={hackathon.imageUrl} alt="" className="h-full w-full object-cover opacity-15" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#030408]/40 via-[#030408]/80 to-[#030408]" />
-          </div>
-        )}
+        <div className="absolute inset-0 -z-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img {...bannerImage(hackathon)} sizes="100vw" alt="" fetchPriority="high" className="h-full w-full object-cover opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#030408]/40 via-[#030408]/80 to-[#030408]" />
+        </div>
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="flex flex-col gap-6">

@@ -9,7 +9,7 @@ import { ArrowLeft, BookOpen, Calendar, CalendarDays, Clock, Info, Lock, MapPin,
 // import QRCode from "react-qr-code";
 // import { getEventDetails } from "../../actions/registrations";
 // import { RegistrationModal } from "../../components/RegistrationModal";
-import { findEvent, registrationClosedReason } from "../../../lib/events";
+import { bannerImage, findEvent, registrationClosedReason } from "../../../lib/events";
 import { MAX_TEAM_SIZE, isHackathonEvent } from "../../../lib/hackathon-rules";
 import { getGuide, guidePath, hasDocument } from "../../../lib/guides";
 import { ProgrammeTimeline } from "../../components/ProgrammeTimeline";
@@ -96,13 +96,18 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         animate={{ opacity: 1, y: 0 }}
         className="ignite-panel ignite-hud-bracket relative flex min-h-[360px] w-full flex-col justify-end overflow-hidden p-8 md:min-h-[420px] md:p-12"
       >
+        {/* Event photo (Unsplash CDN, sized per screen); darkened at the bottom so the title stays readable */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={eventData.imageUrl || "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop"}
+          {...bannerImage(eventData)}
+          sizes="(max-width: 1200px) 100vw, 1152px"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
+          fetchPriority="high"
+          className="absolute inset-0 h-full w-full object-cover opacity-55 saturate-[0.9]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#030408] via-[#030408]/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#030408] via-[#030408]/70 to-[#030408]/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#030408]/70 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-orange-500/10 mix-blend-overlay" />
 
         <div className="relative z-10">
           <div className="mb-4 flex flex-wrap items-center gap-3">

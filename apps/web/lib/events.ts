@@ -4,6 +4,14 @@
 
 export type EventState = "PUBLISHED" | "REGISTRATION_OPEN" | "REGISTRATION_CLOSED" | "LIVE" | "COMPLETED";
 
+/** A photo on the Unsplash CDN (free Unsplash licence: commercial use, no attribution required). */
+export type EventPhoto = {
+  /** Unsplash image id, e.g. "photo-1610457642191-05328cdf34ff" */
+  id: string;
+  /** Which part to keep when cropping (imgix crop modes), e.g. "top" for subjects near the top */
+  crop?: "top" | "bottom" | "left" | "right" | "entropy" | "faces,center";
+};
+
 export type SiteEvent = {
   /** URL id: /events/<slug> */
   slug: string;
@@ -21,7 +29,8 @@ export type SiteEvent = {
   registrationEndAt: string | null;
   timezone: string;
   capacity: number | null;
-  imageUrl: string | null;
+  /** card: the picture on event cards (outside) · banner: the wide image atop the event page (inside) */
+  images: { card: EventPhoto; banner: EventPhoto };
 };
 
 const ORGANIZER = { name: "IEEE Student Branch, SKIT Jaipur" };
@@ -41,7 +50,8 @@ export const EVENTS: SiteEvent[] = [
     registrationEndAt: "2026-10-08T18:29:59Z",
     timezone: "Asia/Kolkata",
     capacity: 200,
-    imageUrl: null,
+    // radio telescope under the Milky Way · oscilloscope waveform on a lab bench
+    images: { card: { id: "photo-1610457642191-05328cdf34ff" }, banner: { id: "photo-1621638363255-9c092fa8d4ab", crop: "top" } },
   },
   {
     slug: "round-table-conference-2026",
@@ -57,7 +67,8 @@ export const EVENTS: SiteEvent[] = [
     registrationEndAt: null,
     timezone: "Asia/Kolkata",
     capacity: null,
-    imageUrl: null,
+    // oval conference table · leaders seated in a circle for a forum
+    images: { card: { id: "photo-1775492783108-5714035b298b" }, banner: { id: "photo-1561489396-888724a1543d" } },
   },
   {
     slug: "ieee-ignite-panel-discussion",
@@ -73,7 +84,8 @@ export const EVENTS: SiteEvent[] = [
     registrationEndAt: null,
     timezone: "Asia/Kolkata",
     capacity: null,
-    imageUrl: null,
+    // stage microphones · a panel on stage before an audience
+    images: { card: { id: "photo-1682258370582-377d685156bc" }, banner: { id: "photo-1735679356705-7c06b780c7a4" } },
   },
   {
     slug: "ieee-ignite-expert-talk",
@@ -89,7 +101,8 @@ export const EVENTS: SiteEvent[] = [
     registrationEndAt: null,
     timezone: "Asia/Kolkata",
     capacity: null,
-    imageUrl: null,
+    // speaker on a lit stage · speaker facing a packed theatre
+    images: { card: { id: "photo-1773829020694-413e879d2957" }, banner: { id: "photo-1774094474808-904ab1ad8586" } },
   },
   {
     slug: "ieee-ignite-hackathon-2026",
@@ -105,9 +118,31 @@ export const EVENTS: SiteEvent[] = [
     registrationEndAt: null,
     timezone: "Asia/Kolkata",
     capacity: null,
-    imageUrl: null,
+    // code on a red-lit screen · teams hacking at night
+    images: { card: { id: "photo-1653387300291-bfa1eeb90e16" }, banner: { id: "photo-1504384764586-bb4cdc1707b0" } },
   },
 ];
+
+/** Unsplash CDN URL for a photo, resized and cropped on their servers (auto picks AVIF/WebP). */
+export function photoUrl(photo: EventPhoto, width: number, height: number) {
+  const crop = photo.crop ? `&crop=${photo.crop}` : "";
+  return `https://images.unsplash.com/${photo.id}?auto=format&fit=crop&w=${width}&h=${height}&q=75${crop}`;
+}
+
+/** The card picture at 3:2, in 1x and 2x for sharp screens. */
+export function cardImage(event: SiteEvent) {
+  const { card } = event.images;
+  return { src: photoUrl(card, 480, 320), srcSet: `${photoUrl(card, 480, 320)} 480w, ${photoUrl(card, 960, 640)} 960w` };
+}
+
+/** The wide banner picture (about 2.6:1), sized for laptops up to large retina screens. */
+export function bannerImage(event: SiteEvent) {
+  const { banner } = event.images;
+  return {
+    src: photoUrl(banner, 1600, 620),
+    srcSet: [1000, 1600, 2400].map((w) => `${photoUrl(banner, w, Math.round(w / 2.58))} ${w}w`).join(", "),
+  };
+}
 
 /** Finds an event by its slug, or by its old database id. */
 export function findEvent(idOrSlug: string) {

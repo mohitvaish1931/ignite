@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Calendar, ChevronRight, MapPin, Trophy, Users } from "lucide-react";
 // Events are served from lib/events.ts while the database is switched off (see _backend/README.md)
 // import { getPublicEvents } from "../actions/events";
-import { EVENTS, type SiteEvent } from "../../lib/events";
+import { EVENTS, cardImage, type SiteEvent } from "../../lib/events";
 import HackathonAirlock from "../components/HackathonAirlock";
 import { isHackathonEvent } from "../../lib/hackathon-rules";
 import { getGuide } from "../../lib/guides";
@@ -64,18 +64,18 @@ function EventCard({ event, index }: { event: SiteEvent; index: number }) {
           {/* Artwork */}
           <div className="relative z-10 h-1/2 w-full p-4 pt-7 transition-all duration-500 group-hover:p-5 group-hover:pt-7">
             <div className="relative h-full w-full overflow-hidden border border-white/10 bg-[#0a0a0f] transition-colors duration-500 group-hover:border-orange-500/40">
-              {event.imageUrl ? (
-                // Event artwork comes from arbitrary admin-provided hosts
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={event.imageUrl} alt="" loading="lazy" className="h-full w-full object-cover opacity-60 transition-opacity duration-500 group-hover:opacity-100" />
-              ) : (
-                <>
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 to-black opacity-80" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                    <Trophy className="h-12 w-12 text-slate-500 transition-colors duration-500 group-hover:text-orange-400" />
-                  </div>
-                </>
-              )}
+              {/* Event photo (Unsplash CDN, already sized); warmed and darkened to sit in the theme */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                {...cardImage(event)}
+                sizes="(max-width: 640px) 90vw, 340px"
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover opacity-75 saturate-[0.85] transition-all duration-700 group-hover:scale-105 group-hover:opacity-100 group-hover:saturate-100"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-orange-500/10" />
+              <div className="pointer-events-none absolute inset-0 bg-orange-500/10 mix-blend-overlay" />
               <span className={`absolute right-2 top-2 rounded-sm border px-2 py-0.5 font-hud text-[10px] font-bold tracking-widest backdrop-blur-sm ${status.className}`}>
                 {status.label}
               </span>
