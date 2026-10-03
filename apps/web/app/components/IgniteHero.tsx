@@ -12,7 +12,8 @@ import HeroRails from "./HeroRails";
 
 const NAV_LINKS = [
   { label: "About", href: "#about", className: "hidden md:inline" },
-  { label: "Events", href: "#events", className: "hidden sm:inline" },
+  // The full Events page (tabs, the hackathon gate, every event), not the home section below
+  { label: "Events", href: "/events", className: "hidden sm:inline" },
   { label: "Schedule", href: "#schedule", className: "hidden md:inline" },
   { label: "Team", href: "#team", className: "hidden sm:inline" },
 ];
@@ -152,9 +153,9 @@ export default function IgniteHero() {
 
             <nav className="flex shrink-0 items-center gap-2 font-hud text-[11px] uppercase tracking-widest text-neutral-300 sm:gap-5 sm:text-xs">
               {NAV_LINKS.map((link) => (
-                <a key={link.href} href={link.href} className={`transition-colors hover:text-orange-400 ${link.className}`}>
+                <Link key={link.href} href={link.href} className={`transition-colors hover:text-orange-400 ${link.className}`}>
                   {link.label}
-                </a>
+                </Link>
               ))}
               {/* Accounts are switched off for now (see _backend/README.md)
               {user ? (
