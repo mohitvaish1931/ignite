@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Committee cards (app/components/CommitteeCard.tsx) light up on mouse hover, or when the card
+   carries data-active: phones set it while the card is mid-screen or just tapped */
+@custom-variant card-on {
+  @media (hover: hover) {
+    &:is(:where(.group):hover *) {
+      @slot;
+    }
+  }
+  &:is(:where(.group)[data-active] *) {
+    @slot;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -569,4 +582,46 @@ html[data-intro="seen"] .ignite-intro { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .ignite-hero-rail,
   .ignite-hero-signal { animation: none; }
+}
+
+/* ---------- Committee cards (app/components/CommitteeCard.tsx) ---------- */
+.committee-scan {
+  top: 0;
+  animation: committee-scan 2.4s linear infinite;
+}
+@keyframes committee-scan {
+  0% { top: -2%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes committee-glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 1px); }
+  40% { transform: translate(-1px, -1px); }
+  60% { transform: translate(2px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  100% { transform: translate(0); }
+}
+/* Tap feedback: orange slices jitter across the photo, then fade */
+.committee-burst {
+  background:
+    repeating-linear-gradient(0deg, rgba(249, 115, 22, 0.55) 0 3px, transparent 3px 9px),
+    linear-gradient(180deg, rgba(249, 115, 22, 0.35), rgba(255, 255, 255, 0.15));
+  mix-blend-mode: screen;
+  animation: committee-burst 0.65s steps(1, end) both;
+}
+@keyframes committee-burst {
+  0% { opacity: 1; clip-path: inset(8% 0 72% 0); transform: translateX(-8px); }
+  15% { clip-path: inset(48% 0 22% 0); transform: translateX(7px); }
+  30% { clip-path: inset(22% 0 54% 0); transform: translateX(-4px); }
+  45% { clip-path: inset(66% 0 6% 0); transform: translateX(5px); }
+  60% { opacity: 0.6; clip-path: inset(0 0 0 0); transform: translateX(0); }
+  80% { opacity: 0.25; }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .committee-scan,
+  .committee-burst { animation: none; }
+  .committee-burst { opacity: 0; }
 }
