@@ -79,8 +79,6 @@ const COMMITTEE = [
   {
     title: "Core Team",
     members: [
-      { name: "Rahul Garg", role: "Mentor", authLevel: "ROOT", imagePath: "/team/rahul-garg.webp" },
-      { name: "Rudraksh Dusad", role: "Mentor", authLevel: "ROOT", imagePath: "/team/rudraksh-dusad.webp" },
       { name: "Mohit Lalwani", role: "Technical & Sponsorship Head", authLevel: "ADMIN", imagePath: "/team/mohit-lalwani.webp" },
       { name: "Tanvi Jain", role: "Event Head", authLevel: "ADMIN", imagePath: "/team/tanvi-jain.webp" },
       { name: "Shanker Joshi", role: "Event Head", authLevel: "ADMIN", imagePath: "/team/shanker-joshi.webp" },
@@ -89,10 +87,24 @@ const COMMITTEE = [
     ],
   },
   {
+    title: "Mentors",
+    members: [
+      { name: "Rahul Garg", role: "Mentor", authLevel: "ROOT", imagePath: "/team/rahul-garg.webp" },
+      { name: "Rudraksh Dusad", role: "Mentor", authLevel: "ROOT", imagePath: "/team/rudraksh-dusad.webp" },
+    ],
+  },
+  {
+    title: "Design Team",
+    members: [
+      { name: "Yash Samriya", role: "Design Team", authLevel: "EXEC", imagePath: "/team/yash-samriya.webp" },
+      { name: "Palak Choudhary", role: "Design Team", authLevel: "EXEC", imagePath: "/team/palak-choudhary.webp" },
+    ],
+  },
+  {
     title: "Sponsorship",
     members: [
       { name: "Anshuman Pareek", role: "Sponsorship", authLevel: "EXEC", imagePath: "/team/anshuman-pareek.webp" },
-      { name: "Yashneel Singh", role: "Sponsorship · Hackathon Coordinator", authLevel: "EXEC" },
+      { name: "Yashneel Singh", role: "Sponsorship · Hackathon Coordinator", authLevel: "EXEC", imagePath: "/team/yashneel-singh.webp" },
     ],
   },
   {
@@ -101,15 +113,15 @@ const COMMITTEE = [
       { name: "Divyansh Batti", role: "Overall Support", authLevel: "STAFF", imagePath: "/team/divyansh-batti.webp" },
       { name: "Shaurya", role: "Organizing Committee", authLevel: "STAFF", imagePath: "/team/shaurya.webp" },
       { name: "Aashi Goyal", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/aashi-goyal.webp" },
-      { name: "Aditya Mangal", role: "Panel Discussion Coordinator", authLevel: "STAFF" },
-      { name: "Mohit Swami", role: "Panel Discussion Coordinator", authLevel: "STAFF" },
+      { name: "Aditya Mangal", role: "Panel Discussion Coordinator", authLevel: "STAFF", imagePath: "/team/aditya-mangal.webp" },
+      { name: "Mohit Swami", role: "Panel Discussion Coordinator", authLevel: "STAFF", imagePath: "/team/mohit-swami.webp" },
       { name: "Shagun Gautam", role: "Symposium Coordinator", authLevel: "STAFF", imagePath: "/team/shagun-gautam.webp" },
-      { name: "Vineet Sharma", role: "Symposium Coordinator", authLevel: "STAFF" },
-      { name: "Shivang Gupta", role: "Symposium Coordinator", authLevel: "STAFF" },
-      { name: "Nainika", role: "Organizing Committee", authLevel: "STAFF" },
-      { name: "Kratika Sharma", role: "Round Table Coordinator", authLevel: "STAFF" },
-      { name: "Ananya", role: "Video Editor", authLevel: "STAFF", imagePath: "/team/ananya.webp" },
-      { name: "Divyansh Maheshwari", role: "Video Editor", authLevel: "STAFF" },
+      { name: "Vineet Sharma", role: "Symposium Coordinator", authLevel: "STAFF", imagePath: "/team/vineet-sharma.webp" },
+      { name: "Shivang Gupta", role: "Symposium Coordinator", authLevel: "STAFF", imagePath: "/team/shivang-gupta.webp" },
+      { name: "Nainika", role: "Organizing Committee", authLevel: "STAFF", imagePath: "/team/nainika.webp" },
+      { name: "Kratika Sharma", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/kratika-sharma.webp" },
+      { name: "Ananya", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/ananya.webp" },
+      { name: "Divyansh Maheshwari", role: "Video Editor", authLevel: "STAFF", imagePath: "/team/divyansh-maheshwari.webp" },
     ],
   },
 ];
