@@ -3,7 +3,7 @@
 import React, { use, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, BookOpen, Calendar, CalendarDays, Clock, Info, Lock, MapPin, Phone, ShieldCheck, Trophy, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, CalendarDays, Clock, Download, FileText, Info, Lock, MapPin, Phone, ShieldCheck, Trophy, Users } from "lucide-react";
 // Accounts, on-site registration and QR tickets are switched off for now: events come from
 // lib/events.ts and sign-ups happen on each event's official form (see _backend/README.md)
 // import QRCode from "react-qr-code";
@@ -11,6 +11,7 @@ import { ArrowLeft, BookOpen, Calendar, CalendarDays, Clock, Info, Lock, MapPin,
 // import { RegistrationModal } from "../../components/RegistrationModal";
 import { bannerImage, findEvent, registrationClosedReason } from "../../../lib/events";
 import { MAX_TEAM_SIZE, isHackathonEvent } from "../../../lib/hackathon-rules";
+import { PROBLEM_STATEMENTS, PS_COUNT, PS_PAGE_PATH, PS_PDF_FILENAME, PS_PDF_PATH, PS_THEMES } from "../../../lib/problem-statements";
 import { getGuide, guidePath, hasDocument } from "../../../lib/guides";
 import { ProgrammeTimeline } from "../../components/ProgrammeTimeline";
 
@@ -260,7 +261,27 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
               <h2 className="ignite-title mb-6 flex items-center gap-3 text-xl">
                 <Trophy className="h-5 w-5 text-orange-500" /> Tracks &amp; Problem Statements
               </h2>
-              <p className="text-slate-400">Problem statements and tracks are released at the start of the event. Your team picks one, and that choice is final.</p>
+              <p className="text-slate-400">
+                The {PS_COUNT} problem statements are live across {PS_THEMES.length} themes. Your team picks one, and that choice is final.
+              </p>
+              <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                {PS_THEMES.map((theme) => (
+                  <li key={theme.id} className="flex items-center justify-between gap-3 rounded-sm border border-white/10 bg-white/[0.03] px-3 py-2.5">
+                    <span className="text-sm text-slate-200">{theme.name}</span>
+                    <span className="shrink-0 font-hud text-xs font-bold tracking-widest text-orange-400">
+                      {PROBLEM_STATEMENTS.filter((ps) => ps.theme === theme.id).length} PS
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href={PS_PAGE_PATH} className="ignite-btn-primary flex items-center gap-2 rounded-sm px-5 py-3 font-orbitron text-xs font-bold tracking-widest text-black">
+                  <FileText className="h-4 w-4" /> VIEW PROBLEM STATEMENTS
+                </Link>
+                <a href={PS_PDF_PATH} download={PS_PDF_FILENAME} className="ignite-btn-secondary flex items-center gap-2 rounded-sm px-5 py-3 font-orbitron text-xs font-bold tracking-widest text-neutral-200">
+                  <Download className="h-4 w-4" /> PDF
+                </a>
+              </div>
               {/* Tracks were listed here from the database (see _backend/app/events/[id]/page.tsx) */}
             </section>
           )}

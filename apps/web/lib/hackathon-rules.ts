@@ -97,9 +97,10 @@ export const SECTIONS: RuleSection[] = [
     id: "problem-statements",
     number: 4,
     title: "Problem Statements & Participation",
-    lead: "Problem statements are revealed only at the event, and a team's selection is final.",
+    lead: "The problem statements are live on the official website, and a team's selection is final.",
     points: [
-      { text: "Problem statements and tracks will be released at the start of the event on the official IEEE IGNITE website/portal." },
+      // The rulebook planned to release them at the start of the event; they went live early on this website
+      { text: "Problem statements and tracks are published on the official IEEE IGNITE website/portal: 25 problem statements across 4 themes." },
       { text: "Teams must select their problem statement through the designated portal." },
       { text: "Once selected, a problem statement cannot be changed." },
     ],
@@ -210,7 +211,7 @@ export const JUDGING_CRITERIA = [
 export const MISSION_STEPS = [
   { step: "01", title: "Register", text: "Sign up and form a team of 1-4 from the same institution and campus." },
   { step: "02", title: "Verify", text: "Every member checks in at SKIT with an original college ID and a government photo ID." },
-  { step: "03", title: "Lock a problem", text: "Problem statements drop at the start. Your selection is final." },
+  { step: "03", title: "Lock a problem", text: "Pick from 25 live problem statements across 4 themes. Your selection is final." },
   { step: "04", title: "Build 24 hours", text: "Software or hardware, built offline on-site in one continuous 24-hour window." },
   { step: "05", title: "Demo & judging", text: "Submit before the deadline, demo a working prototype and answer the judges." },
 ];
@@ -281,7 +282,7 @@ export const HACKATHON_GUIDE: EventGuide = {
     "Offline only: every member must be present in person and verified before the start.",
     "Carry an original college ID and a government-issued photo ID.",
     `Registration fee: ${HACKATHON.fee}, non-refundable once registration is complete.`,
-    "Problem statements are revealed at the event. Once selected, a problem statement can't be changed.",
+    "The 25 problem statements are live on this website. Once selected, a problem statement can't be changed.",
   ],
   registration: { mode: "external", url: HACKATHON_REGISTER_URL },
   agreementDetail: `including teams of ${MIN_TEAM_SIZE}-${MAX_TEAM_SIZE} from the same institution and in-person ID verification`,

@@ -4,11 +4,12 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Calendar, ChevronRight, Clock, Code, Flame, IndianRupee, MapPin, ShieldAlert, Terminal, Trophy, Users } from "lucide-react";
+import { BookOpen, Calendar, ChevronRight, Clock, Code, FileText, Flame, IndianRupee, MapPin, ShieldAlert, Terminal, Trophy, Users } from "lucide-react";
 // Events are served from lib/events.ts while the database is switched off (see _backend/README.md)
 // import { getPublicEvents } from "../actions/events";
 import { EVENTS, bannerImage } from "../../lib/events";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, RULEBOOK_PATH, isHackathonEvent } from "../../lib/hackathon-rules";
+import { PS_COUNT, PS_PAGE_PATH } from "../../lib/problem-statements";
 
 function durationLabel(start: Date, end: Date) {
   const hours = Math.max(1, Math.round((end.getTime() - start.getTime()) / 3_600_000));
@@ -99,7 +100,7 @@ export default function HackathonsPage() {
               ))}
             </div>
 
-            <div className="mt-6 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               {/* For now registration runs on the SKIT ERP, without logging in here */}
               <a
                 href={HACKATHON_REGISTER_URL}
@@ -108,10 +109,17 @@ export default function HackathonsPage() {
                 Enter the Grid
                 <Terminal className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </a>
+              <Link href={PS_PAGE_PATH} className="ignite-btn-secondary flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border-emerald-400/40 px-6 py-4 font-orbitron text-sm font-bold uppercase tracking-wider text-neutral-100 sm:px-8 sm:text-base sm:tracking-widest">
+                <FileText className="h-5 w-5 text-emerald-400" /> Problem Statements
+              </Link>
               <Link href={RULEBOOK_PATH} className="ignite-btn-secondary flex items-center justify-center gap-2 rounded-sm px-8 py-4 font-orbitron font-bold uppercase tracking-widest text-neutral-200">
                 <BookOpen className="h-5 w-5" /> Rulebook
               </Link>
             </div>
+            <Link href={PS_PAGE_PATH} className="group -mt-1 inline-flex w-fit items-center gap-2 font-hud text-xs font-bold uppercase tracking-[0.2em] text-emerald-300 hover:text-emerald-200">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+              {PS_COUNT} problem statements are live <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
             <p className="text-sm text-slate-400">
               {HACKATHON.mode} · {HACKATHON.openTo}.
               {/* Team formation on this site is paused while registration runs on the ERP

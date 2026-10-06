@@ -5,6 +5,7 @@ import Link from "next/link";
 import { EVENTS } from "../../lib/events";
 import { getGuide } from "../../lib/guides";
 import { isHackathonEvent } from "../../lib/hackathon-rules";
+import { PS_PAGE_PATH } from "../../lib/problem-statements";
 
 // Side HUD panels for wide screens: they fill the space either side of the poster art with the
 // event lineup (left) and a launch countdown (right). Shown from 1280px wide and 680px tall
@@ -130,6 +131,7 @@ function LaunchControl() {
       <dl className="mb-5 space-y-2 font-mono text-[10px] tracking-widest">
         {[
           { k: "STATUS", v: "REGISTRATIONS LIVE", accent: "text-emerald-400" },
+          { k: "PS", v: "LIVE NOW", accent: "text-emerald-400", href: PS_PAGE_PATH },
           { k: "VENUE", v: "SKIT JAIPUR" },
           { k: "MODE", v: "IN-PERSON" },
           { k: "PAYLOAD", v: "5 EVENTS · 4 DAYS" },
@@ -138,7 +140,13 @@ function LaunchControl() {
             <dt className="text-slate-500">{row.k}</dt>
             <dd className={row.accent ?? "text-slate-200"}>
               {row.accent && <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 align-middle" />}
-              {row.v}
+              {row.href ? (
+                <Link href={row.href} className="underline decoration-emerald-400/40 underline-offset-4 transition-colors hover:text-emerald-200">
+                  {row.v} →
+                </Link>
+              ) : (
+                row.v
+              )}
             </dd>
           </div>
         ))}

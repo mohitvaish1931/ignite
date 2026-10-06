@@ -6,6 +6,7 @@ import Link from "next/link";
 import Starfield from "./Starfield";
 import { SkitLogo } from "./SkitLogo";
 import HeroRails from "./HeroRails";
+import { PS_COUNT, PS_PAGE_PATH, PS_THEME_COUNT } from "../../lib/problem-statements";
 
 // Accounts are switched off for now (see _backend/README.md); this was the signed-in user
 // type HeroUser = { firstName?: string | null } | null;
@@ -131,6 +132,29 @@ export default function IgniteHero() {
 
           <RocketFlare />
         </PosterCover>
+
+        {/* Announcement: the hackathon problem statements are out */}
+        <Link
+          href={PS_PAGE_PATH}
+          className="group relative z-40 flex w-full items-center justify-center gap-2.5 overflow-hidden border-b border-emerald-400/25 bg-gradient-to-r from-emerald-500/[0.12] via-orange-500/[0.16] to-emerald-500/[0.12] px-4 py-2 text-center backdrop-blur-sm sm:gap-3"
+        >
+          <span className="ignite-announce-sweep" aria-hidden="true" />
+          <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          </span>
+          <span className="whitespace-nowrap font-hud text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-300 sm:text-xs">PS is live now</span>
+          <span className="hidden font-hud text-xs uppercase tracking-[0.15em] text-neutral-200 md:inline">
+            <span className="mr-3 text-white/30">{"//"}</span>
+            {PS_COUNT} hackathon problem statements across {PS_THEME_COUNT} themes
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-orange-500 px-2 py-0.5 font-orbitron text-[10px] font-bold uppercase tracking-wider text-black transition-colors group-hover:bg-orange-400 sm:text-[11px]">
+            View PS
+            <svg className="h-3 w-3 fill-current transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z" />
+            </svg>
+          </span>
+        </Link>
 
         {/* LAYER 6: landing content & technical HUD */}
         <div className="relative z-30 flex w-full flex-1 flex-col justify-between px-4 pt-4 pb-4 sm:px-8 xl:px-[clamp(40px,3.5vw,72px)]">

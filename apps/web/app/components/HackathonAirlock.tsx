@@ -4,8 +4,9 @@ import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Calendar, ChevronRight, Users } from "lucide-react";
+import { BookOpen, Calendar, ChevronRight, FileText, Users } from "lucide-react";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, MISSION_STEPS, RULEBOOK_PATH } from "../../lib/hackathon-rules";
+import { PS_COUNT, PS_PAGE_PATH, PS_THEME_COUNT } from "../../lib/problem-statements";
 
 type Hackathon = {
   slug: string;
@@ -158,6 +159,16 @@ function BriefFacts({ hackathon, door }: { hackathon: Hackathon; door?: boolean 
   );
 }
 
+/** Pulsing green "live" light, sized to the text around it. */
+function LiveDot() {
+  return (
+    <span className="relative flex h-[0.6em] w-[0.6em] shrink-0" aria-hidden="true">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+      <span className="relative inline-flex h-full w-full rounded-full bg-emerald-400" />
+    </span>
+  );
+}
+
 function BriefActions({ door }: { door?: boolean }) {
   const size = door ? "px-[3cqw] py-[1.8cqw] text-[max(9px,1.9cqw)] tracking-wider" : "whitespace-nowrap px-2 py-3 text-[11px] tracking-wide";
   return (
@@ -167,7 +178,10 @@ function BriefActions({ door }: { door?: boolean }) {
         REGISTER NOW
         <ChevronRight className="h-[1.2em] w-[1.2em] transition-transform group-hover:translate-x-0.5" />
       </a>
-      <Link href={RULEBOOK_PATH} className={`ignite-btn-secondary flex items-center gap-1.5 rounded-sm font-orbitron font-bold text-neutral-200 ${size} ${door ? "" : "flex-1 justify-center"}`}>
+      <Link href={PS_PAGE_PATH} className={`ignite-btn-secondary flex items-center gap-1.5 rounded-sm border-emerald-400/40 font-orbitron font-bold text-neutral-100 ${size} ${door ? "" : "w-full justify-center"}`}>
+        <LiveDot /> PROBLEM STATEMENTS
+      </Link>
+      <Link href={RULEBOOK_PATH} className={`ignite-btn-secondary flex items-center gap-1.5 rounded-sm font-orbitron font-bold text-neutral-200 ${size} ${door ? "" : "w-full justify-center"}`}>
         <BookOpen className="h-[1.2em] w-[1.2em]" /> RULEBOOK
       </Link>
       {/* Team formation on this site is paused while registration runs on the ERP
@@ -258,6 +272,7 @@ function ArenaList({ hackathons }: { hackathons: Hackathon[] }) {
         {/* Team formation on this site is switched off with accounts (see _backend/README.md)
         <Link href="/teams" className="ignite-btn-primary rounded-sm px-5 py-2.5 font-orbitron text-[11px] font-bold tracking-wider text-black sm:text-xs">FORM A SQUAD</Link>
         */}
+        <Link href={PS_PAGE_PATH} className="ignite-btn-secondary flex items-center gap-1.5 rounded-sm px-5 py-2.5 font-orbitron text-[11px] font-bold tracking-wider text-neutral-100 sm:text-xs"><LiveDot /> PROBLEM STATEMENTS</Link>
         <Link href={RULEBOOK_PATH} className="ignite-btn-secondary rounded-sm px-5 py-2.5 font-orbitron text-[11px] font-bold tracking-wider text-neutral-200 sm:text-xs">RULEBOOK</Link>
       </div>
     </>
@@ -291,6 +306,14 @@ function MissionControl({ hackathon }: { hackathon: Hackathon }) {
           Secure your spot <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </p>
       </a>
+      <Link href={PS_PAGE_PATH} className="group mt-3 block rounded-sm border border-emerald-400/30 bg-emerald-400/[0.06] p-3 transition-colors hover:bg-emerald-400/15">
+        <p className="flex items-center gap-2 font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-300">
+          <LiveDot /> Problem statements are live
+        </p>
+        <p className="flex items-center gap-1 font-orbitron text-sm font-bold uppercase text-white group-hover:text-emerald-200">
+          <FileText className="h-4 w-4" /> {PS_COUNT} PS · {PS_THEME_COUNT} themes <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </p>
+      </Link>
     </div>
   );
 }
