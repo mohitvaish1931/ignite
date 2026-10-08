@@ -4,10 +4,11 @@ import React, { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Calendar, ChevronRight, MapPin, Trophy, Users } from "lucide-react";
+import { Calendar, ChevronRight, Lock, MapPin, Trophy, Users } from "lucide-react";
 // Events are served from lib/events.ts while the database is switched off (see _backend/README.md)
 // import { getPublicEvents } from "../actions/events";
-import { EVENTS, cardImage, type SiteEvent } from "../../lib/events";
+import { EVENTS, REGISTRATIONS_OPEN, cardImage, type SiteEvent } from "../../lib/events";
+import { PS_COUNT, PS_PAGE_PATH } from "../../lib/problem-statements";
 import HackathonAirlock from "../components/HackathonAirlock";
 import { isHackathonEvent } from "../../lib/hackathon-rules";
 import { getGuide } from "../../lib/guides";
@@ -30,6 +31,7 @@ function EventCard({ event, index }: { event: SiteEvent; index: number }) {
   const status =
     event.state === "LIVE" ? { label: "LIVE NOW", className: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" }
     : event.state === "REGISTRATION_OPEN" ? { label: "REG. OPEN", className: "text-orange-300 border-orange-500/40 bg-orange-500/10" }
+    : event.state === "REGISTRATION_CLOSED" ? { label: "REG. CLOSED", className: "text-red-300 border-red-500/40 bg-red-500/10" }
     : { label: "UPCOMING", className: "text-slate-300 border-white/15 bg-white/5" };
 
   return (
@@ -98,9 +100,11 @@ function EventCard({ event, index }: { event: SiteEvent; index: number }) {
                   <span className="line-clamp-1">{guide.venue.toUpperCase()}</span>
                 </span>
               )}
-              <span className="flex items-center gap-2">
-                <Users className="h-3.5 w-3.5 text-orange-500" />
-                {noRegistration
+              <span className={`flex items-center gap-2 ${event.state === "REGISTRATION_CLOSED" ? "text-red-300" : ""}`}>
+                {event.state === "REGISTRATION_CLOSED" ? <Lock className="h-3.5 w-3.5 text-red-400" /> : <Users className="h-3.5 w-3.5 text-orange-500" />}
+                {event.state === "REGISTRATION_CLOSED"
+                  ? "REGISTRATION CLOSED"
+                  : noRegistration
                   ? "NO REGISTRATION NEEDED"
                   // External form sign-ups aren't counted on this site
                   : externalForm ? (event.capacity ? `LIMITED TO ${event.capacity} SEATS` : "REGISTER VIA OFFICIAL FORM")
@@ -131,6 +135,22 @@ export default function EventsPage() {
         >
           EVENTS
         </h1>
+        {!REGISTRATIONS_OPEN && (
+          // Sign-ups are over: say so once, and point at what's live now
+          <Link
+            href={PS_PAGE_PATH}
+            className="group mt-4 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-sm border border-white/10 bg-black/50 px-4 py-2.5 text-center backdrop-blur-sm transition-colors hover:border-emerald-400/50"
+          >
+            <span className="flex items-center gap-1.5 font-hud text-xs font-bold uppercase tracking-[0.2em] text-red-300">
+              <Lock className="h-3.5 w-3.5" /> Registrations closed
+            </span>
+            <span className="hidden text-white/20 sm:inline">{"//"}</span>
+            <span className="flex items-center gap-1.5 font-hud text-xs font-bold uppercase tracking-[0.2em] text-emerald-300 group-hover:text-emerald-200">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" /> {PS_COUNT} problem statements live
+              <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
+        )}
       </div>
 
       {/* The open tab comes from the URL, which only the browser knows on a prerendered page */}

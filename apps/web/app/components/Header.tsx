@@ -7,6 +7,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { SkitLogo } from "./SkitLogo";
 import { HACKATHON_SLUG } from "../../lib/hackathon-rules";
+import { REGISTRATIONS_OPEN } from "../../lib/events";
+import { PS_PAGE_PATH } from "../../lib/problem-statements";
 
 // Frontend only for now: registrations run on the SKIT ERP / official forms, so there is no
 // login here. The full header with login, logout and account links is parked in
@@ -95,10 +97,21 @@ export function Header() {
           </nav>
 
           <div className="ml-auto flex items-center gap-5 font-hud text-sm font-semibold uppercase tracking-[0.2em]">
-            {/* Each event page links to its official registration form */}
-            <Link href="/events" className="ignite-btn-primary rounded-sm px-5 py-2 font-orbitron text-xs font-bold tracking-wider text-black">
-              REGISTER
-            </Link>
+            {REGISTRATIONS_OPEN ? (
+              // Each event page links to its official registration form
+              <Link href="/events" className="ignite-btn-primary rounded-sm px-5 py-2 font-orbitron text-xs font-bold tracking-wider text-black">
+                REGISTER
+              </Link>
+            ) : (
+              // Registrations are closed: the header highlights the problem statements instead
+              <Link href={PS_PAGE_PATH} className="ignite-btn-primary flex items-center gap-2 whitespace-nowrap rounded-sm px-4 py-2 font-orbitron text-xs font-bold tracking-wider text-black sm:px-5">
+                <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-black" />
+                </span>
+                VIEW PS
+              </Link>
+            )}
 
             <button
               onClick={() => setMenuOpen((o) => !o)}

@@ -327,7 +327,8 @@ export const SYMPOSIUM_GUIDE: EventGuide = {
     "IEEE Student Branch, SKIT Jaipur · IEEE MTT-S Student Branch Chapter, SKIT Jaipur",
     "Free Registration · Limited to 200 Participants",
   ],
-  cta: { label: "REGISTER NOW", href: REGISTER_URL },
+  // Registrations closed, so the rulebook points back at the event page
+  cta: { label: "VIEW EVENT", href: "/events/ieee-ignite-symposium-2026" },
 
   venue: "Day 1: 7F’11, Civil Block · Day 2: ECL-06, CS Block · SKIT Jaipur",
   keyRules: [

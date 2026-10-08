@@ -2,7 +2,7 @@
 
 import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { EVENTS } from "../../lib/events";
+import { EVENTS, REGISTRATIONS_OPEN } from "../../lib/events";
 import { getGuide } from "../../lib/guides";
 import { isHackathonEvent } from "../../lib/hackathon-rules";
 import { PS_PAGE_PATH } from "../../lib/problem-statements";
@@ -130,7 +130,9 @@ function LaunchControl() {
 
       <dl className="mb-5 space-y-2 font-mono text-[10px] tracking-widest">
         {[
-          { k: "STATUS", v: "REGISTRATIONS LIVE", accent: "text-emerald-400" },
+          REGISTRATIONS_OPEN
+            ? { k: "STATUS", v: "REGISTRATIONS LIVE", accent: "text-emerald-400" }
+            : { k: "STATUS", v: "REGISTRATIONS CLOSED", tone: "text-red-300" },
           { k: "PS", v: "LIVE NOW", accent: "text-emerald-400", href: PS_PAGE_PATH },
           { k: "VENUE", v: "SKIT JAIPUR" },
           { k: "MODE", v: "IN-PERSON" },
@@ -138,7 +140,7 @@ function LaunchControl() {
         ].map((row) => (
           <div key={row.k} className="flex items-center justify-between gap-3 border-b border-white/5 pb-2">
             <dt className="text-slate-500">{row.k}</dt>
-            <dd className={row.accent ?? "text-slate-200"}>
+            <dd className={row.accent ?? row.tone ?? "text-slate-200"}>
               {row.accent && <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 align-middle" />}
               {row.href ? (
                 <Link href={row.href} className="underline decoration-emerald-400/40 underline-offset-4 transition-colors hover:text-emerald-200">
@@ -164,8 +166,8 @@ function LaunchControl() {
       </div>
 
       <div className="flex flex-col items-end gap-2">
-        <Link href="/events" className="ignite-btn-primary rounded-sm px-4 py-2 font-orbitron text-[10px] font-bold tracking-widest text-black">
-          CHOOSE YOUR EVENT
+        <Link href={REGISTRATIONS_OPEN ? "/events" : PS_PAGE_PATH} className="ignite-btn-primary rounded-sm px-4 py-2 font-orbitron text-[10px] font-bold tracking-widest text-black">
+          {REGISTRATIONS_OPEN ? "CHOOSE YOUR EVENT" : "VIEW PROBLEM STATEMENTS"}
         </Link>
         <Link href="/rulebooks" className="font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400 transition-colors hover:text-orange-300">
           Rulebooks &amp; programmes →

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Calendar, ChevronRight, FileText, Users } from "lucide-react";
+import { BookOpen, Calendar, ChevronRight, FileText, Lock, Users } from "lucide-react";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, MISSION_STEPS, RULEBOOK_PATH } from "../../lib/hackathon-rules";
 import { PS_COUNT, PS_PAGE_PATH, PS_THEME_COUNT } from "../../lib/problem-statements";
 
@@ -42,6 +42,7 @@ function dateRange(start: string | Date, end: string | Date) {
 function statusOf(h: Hackathon) {
   if (h.state === "LIVE") return { label: "LIVE", className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" };
   if (h.state === "REGISTRATION_OPEN") return { label: "REG. OPEN", className: "border-orange-500/40 bg-orange-500/10 text-orange-300" };
+  if (h.state === "REGISTRATION_CLOSED") return { label: "REG. CLOSED", className: "border-red-500/40 bg-red-500/10 text-red-300" };
   return { label: "UPCOMING", className: "border-white/15 bg-white/5 text-slate-300" };
 }
 
@@ -169,18 +170,33 @@ function LiveDot() {
   );
 }
 
-function BriefActions({ door }: { door?: boolean }) {
+function BriefActions({ door, closed }: { door?: boolean; closed?: boolean }) {
   const size = door ? "px-[3cqw] py-[1.8cqw] text-[max(9px,1.9cqw)] tracking-wider" : "whitespace-nowrap px-2 py-3 text-[11px] tracking-wide";
   return (
     <div className={`flex w-full flex-wrap justify-center ${door ? "gap-[1.6cqw]" : "gap-2"}`}>
-      {/* For now registration runs on the SKIT ERP, without logging in here */}
-      <a href={HACKATHON_REGISTER_URL} className={`ignite-btn-primary group flex items-center gap-1 rounded-sm font-orbitron font-bold text-black ${size} ${door ? "" : "w-full justify-center"}`}>
-        REGISTER NOW
-        <ChevronRight className="h-[1.2em] w-[1.2em] transition-transform group-hover:translate-x-0.5" />
-      </a>
-      <Link href={PS_PAGE_PATH} className={`ignite-btn-secondary flex items-center gap-1.5 rounded-sm border-emerald-400/40 font-orbitron font-bold text-neutral-100 ${size} ${door ? "" : "w-full justify-center"}`}>
-        <LiveDot /> PROBLEM STATEMENTS
-      </Link>
+      {closed ? (
+        // Sign-ups are over, so the problem statements take the lead
+        <>
+          <span className={`flex items-center gap-1.5 rounded-sm border border-red-500/40 bg-red-500/10 font-orbitron font-bold text-red-300 ${size} ${door ? "" : "w-full justify-center"}`}>
+            <Lock className="h-[1.1em] w-[1.1em]" /> REGISTRATION CLOSED
+          </span>
+          <Link href={PS_PAGE_PATH} className={`ignite-btn-primary group flex items-center gap-1.5 rounded-sm font-orbitron font-bold text-black ${size} ${door ? "" : "w-full justify-center"}`}>
+            <FileText className="h-[1.2em] w-[1.2em]" /> PROBLEM STATEMENTS
+            <ChevronRight className="h-[1.2em] w-[1.2em] transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </>
+      ) : (
+        <>
+          {/* For now registration runs on the SKIT ERP, without logging in here */}
+          <a href={HACKATHON_REGISTER_URL} className={`ignite-btn-primary group flex items-center gap-1 rounded-sm font-orbitron font-bold text-black ${size} ${door ? "" : "w-full justify-center"}`}>
+            REGISTER NOW
+            <ChevronRight className="h-[1.2em] w-[1.2em] transition-transform group-hover:translate-x-0.5" />
+          </a>
+          <Link href={PS_PAGE_PATH} className={`ignite-btn-secondary flex items-center gap-1.5 rounded-sm border-emerald-400/40 font-orbitron font-bold text-neutral-100 ${size} ${door ? "" : "w-full justify-center"}`}>
+            <LiveDot /> PROBLEM STATEMENTS
+          </Link>
+        </>
+      )}
       <Link href={RULEBOOK_PATH} className={`ignite-btn-secondary flex items-center gap-1.5 rounded-sm font-orbitron font-bold text-neutral-200 ${size} ${door ? "" : "w-full justify-center"}`}>
         <BookOpen className="h-[1.2em] w-[1.2em]" /> RULEBOOK
       </Link>
@@ -199,6 +215,7 @@ function MissionBrief({ hackathon }: { hackathon: Hackathon }) {
   const now = useNow();
   const status = statusOf(hackathon);
   const days = now === null ? 0 : Math.ceil((new Date(hackathon.startAt).getTime() - now) / 86_400_000);
+  const closed = hackathon.state === "REGISTRATION_CLOSED";
 
   return (
     <>
@@ -218,7 +235,9 @@ function MissionBrief({ hackathon }: { hackathon: Hackathon }) {
       <div className="mt-[4cqw] hidden w-full flex-1 flex-col gap-[3cqw] sm:flex">
         <BriefFacts hackathon={hackathon} door />
         <p className="text-[max(9px,1.9cqw)] text-slate-400">
-          Seats are limited and allotted first-come, first-served. Every member is verified in person.
+          {closed
+            ? "Registrations are now closed. Every registered member is verified in person at SKIT."
+            : "Seats are limited and allotted first-come, first-served. Every member is verified in person."}
         </p>
         <div>
           <p className="font-hud text-[max(8px,1.65cqw)] font-bold uppercase tracking-[0.3em] text-slate-500">Judged on</p>
@@ -231,7 +250,7 @@ function MissionBrief({ hackathon }: { hackathon: Hackathon }) {
           </ul>
         </div>
         <div className="mt-auto">
-          <BriefActions door />
+          <BriefActions door closed={closed} />
         </div>
       </div>
       <p className="mt-[5cqw] font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-orange-400 sm:hidden">Mission brief below</p>
@@ -300,17 +319,27 @@ function MissionControl({ hackathon }: { hackathon: Hackathon }) {
           </div>
         ))}
       </div>
-      <a href={HACKATHON_REGISTER_URL} className="group mt-4 block rounded-sm border border-orange-500/30 bg-orange-500/[0.07] p-3 transition-colors hover:bg-orange-500/15">
-        <p className="font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-orange-400">Seats are limited · first come, first served</p>
-        <p className="flex items-center gap-1 font-orbitron text-sm font-bold uppercase text-white group-hover:text-orange-200">
-          Secure your spot <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-        </p>
-      </a>
-      <Link href={PS_PAGE_PATH} className="group mt-3 block rounded-sm border border-emerald-400/30 bg-emerald-400/[0.06] p-3 transition-colors hover:bg-emerald-400/15">
+      {hackathon.state === "REGISTRATION_CLOSED" ? (
+        <div className="mt-4 flex items-center gap-2 rounded-sm border border-red-500/30 bg-red-500/[0.07] p-3">
+          <Lock className="h-4 w-4 shrink-0 text-red-300" />
+          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.25em] text-red-300">Registrations closed</p>
+        </div>
+      ) : (
+        <a href={HACKATHON_REGISTER_URL} className="group mt-4 block rounded-sm border border-orange-500/30 bg-orange-500/[0.07] p-3 transition-colors hover:bg-orange-500/15">
+          <p className="font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-orange-400">Seats are limited · first come, first served</p>
+          <p className="flex items-center gap-1 font-orbitron text-sm font-bold uppercase text-white group-hover:text-orange-200">
+            Secure your spot <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </p>
+        </a>
+      )}
+      <Link
+        href={PS_PAGE_PATH}
+        className="group mt-3 block rounded-sm border border-emerald-400/50 bg-emerald-400/[0.1] p-4 shadow-[0_0_24px_rgba(52,211,153,0.15)] transition-colors hover:bg-emerald-400/20"
+      >
         <p className="flex items-center gap-2 font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-300">
           <LiveDot /> Problem statements are live
         </p>
-        <p className="flex items-center gap-1 font-orbitron text-sm font-bold uppercase text-white group-hover:text-emerald-200">
+        <p className="mt-1 flex items-center gap-1.5 font-orbitron text-base font-bold uppercase text-white group-hover:text-emerald-100">
           <FileText className="h-4 w-4" /> {PS_COUNT} PS · {PS_THEME_COUNT} themes <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </p>
       </Link>
@@ -523,7 +552,7 @@ export default function HackathonAirlock({ hackathons }: { hackathons: Hackathon
                 <div className="ignite-panel ignite-hud-bracket flex flex-col gap-4 p-4">
                   <p className="text-sm text-slate-300">{featured.summary || HACKATHON.tagline}</p>
                   <BriefFacts hackathon={featured} />
-                  <BriefActions />
+                  <BriefActions closed={featured.state === "REGISTRATION_CLOSED"} />
                 </div>
               ) : (
                 <ArenaList hackathons={hackathons} />

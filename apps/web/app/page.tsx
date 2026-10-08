@@ -9,7 +9,8 @@ import { ChevronRight, Code, MapPin, Mic, Presentation, RadioTower, UsersRound }
 import IgniteHero from "./components/IgniteHero";
 import IntroLoader from "./components/IntroLoader";
 import CommitteeCard from "./components/CommitteeCard";
-import { bannerImage, cardImage, findEvent } from "../lib/events";
+import { REGISTRATIONS_OPEN, bannerImage, cardImage, findEvent } from "../lib/events";
+import { PS_COUNT, PS_PAGE_PATH } from "../lib/problem-statements";
 
 // The fest opens with Symposium Day 1: 12 October 2026, 11:00 IST
 const IGNITION_AT = new Date("2026-10-12T11:00:00+05:30").getTime();
@@ -317,13 +318,29 @@ export default function LandingPage() {
           </div>
 
           <div className="relative z-30 flex flex-col items-center">
-            <h2 className="font-orbitron font-black text-5xl md:text-[7rem] leading-none tracking-tighter mb-2 uppercase drop-shadow-2xl">
-              BOOK YOUR
-            </h2>
-            <h2 className="font-orbitron font-black text-5xl md:text-[7.5rem] leading-none tracking-tighter mb-12 uppercase drop-shadow-2xl">
-              <span>PASS </span>
-              <span className="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.8)]">NOW</span>
-            </h2>
+            {REGISTRATIONS_OPEN ? (
+              <>
+                <h2 className="font-orbitron font-black text-5xl md:text-[7rem] leading-none tracking-tighter mb-2 uppercase drop-shadow-2xl">
+                  BOOK YOUR
+                </h2>
+                <h2 className="font-orbitron font-black text-5xl md:text-[7.5rem] leading-none tracking-tighter mb-12 uppercase drop-shadow-2xl">
+                  <span>PASS </span>
+                  <span className="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.8)]">NOW</span>
+                </h2>
+              </>
+            ) : (
+              <>
+                <h2 className="font-orbitron font-black text-4xl sm:text-5xl md:text-[6.5rem] leading-none tracking-tighter mb-2 uppercase drop-shadow-2xl">
+                  REGISTRATIONS
+                </h2>
+                <h2 className="font-orbitron font-black text-5xl md:text-[7.5rem] leading-none tracking-tighter mb-6 uppercase drop-shadow-2xl">
+                  <span className="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.8)]">CLOSED</span>
+                </h2>
+                <p className="mb-12 max-w-xl text-base text-slate-300 md:text-lg">
+                  Registrations for every IEEE IGNITE &apos;26 event are now closed. The {PS_COUNT} hackathon problem statements are live.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Countdown to the opening ceremony */}
@@ -347,8 +364,8 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 relative z-30">
-            <Link href="/events" className="ignite-btn-primary flex items-center gap-2 px-10 py-4 rounded-sm font-orbitron font-bold text-sm tracking-widest uppercase text-black">
-              Register Now <ChevronRight className="w-4 h-4" />
+            <Link href={REGISTRATIONS_OPEN ? "/events" : PS_PAGE_PATH} className="ignite-btn-primary flex items-center gap-2 px-10 py-4 rounded-sm font-orbitron font-bold text-sm tracking-widest uppercase text-black">
+              {REGISTRATIONS_OPEN ? "Register Now" : "Problem Statements"} <ChevronRight className="w-4 h-4" />
             </Link>
             <Link href="/rulebooks" className="ignite-btn-secondary px-10 py-4 rounded-sm font-orbitron font-bold text-sm tracking-widest uppercase text-neutral-200">
               Rulebooks

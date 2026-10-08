@@ -1,6 +1,7 @@
 // IEEE IGNITE Hackathon 2026: official rulebook content and the limits the app enforces.
 // The rulebook page, the hackathon gate and the hub all read from here.
 import type { EventGuide, GuideBlock } from "./guides/types";
+import { PS_PAGE_PATH } from "./problem-statements";
 
 /** §2 Team Formation: teams have between 1 and 4 members. */
 export const MIN_TEAM_SIZE = 1;
@@ -244,7 +245,7 @@ export const HACKATHON_GUIDE: EventGuide = {
       ...(note ? [{ type: "note" as const, ...note }] : []),
     ],
   })),
-  cta: { label: "ENTER THE HACKATHON", href: "/events?tab=hackathons" },
+  cta: { label: "VIEW PROBLEM STATEMENTS", href: PS_PAGE_PATH },
 
   venue: `${HACKATHON.venue} · Offline only`,
   details: [

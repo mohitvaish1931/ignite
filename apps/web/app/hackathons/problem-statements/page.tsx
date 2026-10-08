@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronRight, Download, ExternalLink } from "lucide-react";
 import { HACKATHON_REGISTER_URL, RULEBOOK_PATH } from "../../../lib/hackathon-rules";
 import { PS_COUNT, PS_PDF_FILENAME, PS_PDF_PAGES, PS_PDF_PATH, PS_THEME_COUNT } from "../../../lib/problem-statements";
+import { REGISTRATIONS_OPEN } from "../../../lib/events";
 import ProblemStatementsBrowser from "./ProblemStatementsBrowser";
 
 const description = `All ${PS_COUNT} problem statements for the IEEE IGNITE Hackathon 2026 (14-15 October, SKIT Jaipur) across ${PS_THEME_COUNT} themes: AI & cybercrime, smart energy & EV, IoT & automation, and robotics & smart campus.`;
@@ -65,12 +66,21 @@ export default function ProblemStatementsPage() {
               <Download className="h-4 w-4" /> Download PDF
               <span className="font-hud text-[10px] font-semibold tracking-widest text-slate-400">{PS_PDF_PAGES} pages</span>
             </a>
-            <a
-              href={HACKATHON_REGISTER_URL}
-              className="ignite-btn-secondary group flex items-center justify-center gap-1.5 rounded-sm px-6 py-3 font-orbitron text-xs font-bold uppercase tracking-wider text-neutral-200 sm:text-sm"
-            >
-              Register now <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </a>
+            {REGISTRATIONS_OPEN ? (
+              <a
+                href={HACKATHON_REGISTER_URL}
+                className="ignite-btn-secondary group flex items-center justify-center gap-1.5 rounded-sm px-6 py-3 font-orbitron text-xs font-bold uppercase tracking-wider text-neutral-200 sm:text-sm"
+              >
+                Register now <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </a>
+            ) : (
+              <Link
+                href={RULEBOOK_PATH}
+                className="ignite-btn-secondary flex items-center justify-center gap-2 rounded-sm px-6 py-3 font-orbitron text-xs font-bold uppercase tracking-wider text-neutral-200 sm:text-sm"
+              >
+                <BookOpen className="h-4 w-4" /> Rulebook
+              </Link>
+            )}
           </div>
 
           <dl className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4">

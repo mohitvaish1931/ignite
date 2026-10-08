@@ -42,7 +42,7 @@ export const EVENTS: SiteEvent[] = [
     name: "IEEE IGNITE Symposium 2026",
     summary: "Recent Advancements in RF, Microwave, EMI/EMC · 12–13 October 2026 · SKIT Jaipur",
     description: "IEEE IGNITE Symposium 2026 is a free, two-day technical symposium on recent advancements in RF, Microwave, EMI and EMC. Through expert-led sessions, hands-on workshops, interactive activities and a technical quiz, it aims to bridge the gap between theory and practical application.\n\nOrganized by the IEEE Student Branch, SKIT Jaipur, in association with the IEEE MTT-S Student Branch Chapter, SKIT Jaipur.\n\nDay 1 (12 October): 7F’11, Civil Block, SKIT. Day 2 (13 October): ECL-06, CS Block, SKIT. Free registration, limited to 200 participants; registration closes on 8 October 2026.",
-    state: "REGISTRATION_OPEN",
+    state: "REGISTRATION_CLOSED",
     category: { name: "Symposium" },
     organization: ORGANIZER,
     startAt: "2026-10-12T05:30:00Z",
@@ -59,7 +59,7 @@ export const EVENTS: SiteEvent[] = [
     name: "Round Table Conference 2026",
     summary: "“Leveraging Technology for a Better Tomorrow” · Connecting Innovation, Sustainability and Society · 13 October 2026 · SKIT Jaipur",
     description: "A round table conference on “Leveraging Technology for a Better Tomorrow”, connecting innovation, sustainability and society. A keynote address and an integrated panel discussion cover emerging technologies, AI, sustainability, future skills and responsible innovation, followed by an “Ask the Experts” audience session and key recommendations.\n\n13 October 2026 · 10:30 AM - 1:30 PM · Community Hall, Idea Lab, SKIT Jaipur. No registration required.",
-    state: "PUBLISHED",
+    state: "REGISTRATION_CLOSED",
     category: { name: "Conference" },
     organization: ORGANIZER,
     startAt: "2026-10-13T05:00:00Z",
@@ -76,7 +76,7 @@ export const EVENTS: SiteEvent[] = [
     name: "IEEE IGNITE Panel Discussion",
     summary: "Experts on emerging technologies, innovation and industry trends · 13 October 2026 · JC Bose, SKIT Jaipur",
     description: "An interactive session where experts share insights and perspectives on emerging technologies, innovation, and industry trends.\n\n13 October 2026 · 11:00 AM - 2:00 PM · JC Bose, SKIT Jaipur. Individual participation, free registration. Organized by IEEE, CS CSC, TEC SBC and WIE AG.",
-    state: "REGISTRATION_OPEN",
+    state: "REGISTRATION_CLOSED",
     category: { name: "Panel Discussion" },
     organization: ORGANIZER,
     startAt: "2026-10-13T05:30:00Z",
@@ -93,7 +93,7 @@ export const EVENTS: SiteEvent[] = [
     name: "IEEE IGNITE Expert Talk",
     summary: "Expert talk during the IEEE IGNITE Hackathon · 14–15 October 2026 · Indoor Sports Complex, SKIT Jaipur",
     description: "An expert talk held during the 24-hour IEEE IGNITE Hackathon 2026 at the Indoor Sports Complex, SKIT Jaipur. Free, with no registration needed.\n\nOrganized by IEEE, CSE/IT, ECE, IDEA Lab, IIC, CS SBC, MTTs SBC, TEC SBC and WIE AG.",
-    state: "PUBLISHED",
+    state: "REGISTRATION_CLOSED",
     category: { name: "Expert Talk" },
     organization: ORGANIZER,
     startAt: "2026-10-14T04:30:00Z",
@@ -110,7 +110,7 @@ export const EVENTS: SiteEvent[] = [
     name: "IEEE IGNITE Hackathon 2026",
     summary: "24-Hour Software & Hardware Hackathon · 14–15 October 2026 · SKIT Jaipur",
     description: "IEEE IGNITE is a 24-hour, fully offline software and hardware hackathon held at Swami Keshvanand Institute of Technology, Management & Gramothan (SKIT), Jaipur. It is open to eligible student teams from SKIT and from other institutions, subject to the rules in the official rulebook.\n\nTeams of 1 to 4 members (all from the same institution and campus) build a working solution during a continuous 24-hour window. The problem statements are live on this website (25 across 4 themes), and a team's selection is final. Open to currently enrolled UG, PG, diploma and PhD students.\n\nBy registering, every participant agrees to follow the rulebook and all instructions issued by the organizing committee.",
-    state: "REGISTRATION_OPEN",
+    state: "REGISTRATION_CLOSED",
     category: { name: "Hackathon" },
     organization: ORGANIZER,
     startAt: "2026-10-14T04:30:00Z",
@@ -149,9 +149,18 @@ export function findEvent(idOrSlug: string) {
   return EVENTS.find((e) => e.slug === idOrSlug || e.legacyId === idOrSlug);
 }
 
-/** Why sign-ups are closed right now, or null while they're open (deadline / event over). */
-export function registrationClosedReason(event: SiteEvent, now = Date.now()) {
-  if (Date.parse(event.endAt) < now) return "This event has already ended.";
+/** True while at least one event takes sign-ups; drives the site-wide Register buttons and status lights. */
+export const REGISTRATIONS_OPEN = EVENTS.some((e) => e.state === "REGISTRATION_OPEN");
+
+/**
+ * Why sign-ups are closed, or null while they're open. An event marked REGISTRATION_CLOSED is closed
+ * whatever the clock says, so that answer is the same on the server and in the browser; the deadline
+ * and event-over checks need the browser's "now" (pass null until it's known).
+ */
+export function registrationClosedReason(event: SiteEvent, now: number | null = Date.now()) {
+  if (now !== null && Date.parse(event.endAt) < now) return "This event has already ended.";
+  if (event.state === "REGISTRATION_CLOSED") return "Registrations for this event are now closed.";
+  if (now === null) return null;
   if (event.registrationEndAt && Date.parse(event.registrationEndAt) < now) return "Registrations for this event have closed.";
   return null;
 }

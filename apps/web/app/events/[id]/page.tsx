@@ -83,7 +83,39 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   const isHackathon = isHackathonEvent(eventData);
   // The event's official rulebook, when it has one
   const guide = getGuide(eventData.slug);
-  const closedReason = now === null ? null : registrationClosedReason(eventData, now);
+  // Known on the server too when the event is marked closed; deadline checks wait for the browser clock
+  const closedReason = registrationClosedReason(eventData, now);
+  const registrationClosed = eventData.state === "REGISTRATION_CLOSED";
+
+  // When, where and the event's own links: shown in the side panel whether or not sign-ups are open
+  const panelFacts = guide && (
+    <>
+      <dl className="space-y-4">
+        {[
+          { icon: Calendar, label: "When", value: guide.when ? `${guide.when.dates} · ${guide.when.time}` : whenLabel(eventData.startAt, eventData.endAt, eventData.timezone) },
+          { icon: MapPin, label: "Where", value: guide.venue },
+        ].map(({ icon: Icon, label, value }) => (
+          <div key={label} className="flex items-start gap-3">
+            <Icon className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+            <div>
+              <dt className="font-hud text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</dt>
+              <dd className="text-sm text-slate-200">{value}</dd>
+            </div>
+          </div>
+        ))}
+      </dl>
+      {guide.related && (
+        <Link href={guide.related.href} className="ignite-btn-primary mt-8 flex items-center justify-center gap-2 rounded-sm py-3 font-orbitron text-sm font-bold tracking-wider text-black">
+          {guide.related.label}
+        </Link>
+      )}
+      {hasDocument(guide) && (
+        <Link href={guidePath(guide.slug)} className="ignite-btn-secondary mt-8 flex items-center justify-center gap-2 rounded-sm py-3 font-orbitron text-sm font-bold tracking-wider text-neutral-200">
+          <BookOpen className="h-4 w-4" /> {guide.programme ? "VIEW PROGRAMME" : "READ THE RULEBOOK"}
+        </Link>
+      )}
+    </>
+  );
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-8">
@@ -115,7 +147,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
             <span className="rounded-sm border border-orange-500/40 bg-orange-500/15 px-3 py-1 font-orbitron text-xs font-bold tracking-widest text-orange-400">
               {isHackathon ? "HACKATHON" : (eventData.category?.name ?? "Event").toUpperCase()}
             </span>
-            <span className={`rounded-sm border px-3 py-1 font-hud text-xs font-bold uppercase tracking-widest ${eventData.state === "LIVE" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-white/15 bg-white/5 text-slate-300"}`}>
+            <span className={`rounded-sm border px-3 py-1 font-hud text-xs font-bold uppercase tracking-widest ${eventData.state === "LIVE" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : registrationClosed ? "border-red-500/40 bg-red-500/10 text-red-300" : "border-white/15 bg-white/5 text-slate-300"}`}>
               {STATE_LABELS[eventData.state] ?? eventData.state}
             </span>
             {eventData.organization?.name && (
@@ -148,6 +180,8 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                 // Hackathon registrations happen on the ERP, so this site's count doesn't apply
                 isHackathon
                   ? { icon: Users, label: "Team size", value: `1 to ${MAX_TEAM_SIZE} members, same institution & campus` }
+                  : registrationClosed
+                    ? { icon: Lock, label: "Registration", value: "Closed" }
                   : guide?.registration.mode === "none"
                     ? { icon: Users, label: "Registration", value: eventData.capacity ? `Not required · up to ${eventData.capacity} participants` : "Not required" }
                   // Registrations on an external form aren't counted here, so show the limit rather than spots left
@@ -291,42 +325,33 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
             _backend/app/events/[id]/page.tsx) */}
         <aside className="w-full lg:w-96">
           <div className="ignite-panel ignite-hud-bracket sticky top-28 p-8">
-            {guide?.registration.mode === "none" ? (
+            {closedReason ? (
+              <div>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10">
+                  <Lock className="h-5 w-5 text-red-300" />
+                </div>
+                <h3 className="ignite-title mb-3 text-2xl">Registration Closed</h3>
+                <p className="mb-6 text-sm text-slate-400">{closedReason}</p>
+                {isHackathon && (
+                  <div className="mb-8 rounded-sm border border-emerald-400/35 bg-emerald-400/[0.06] p-4">
+                    <p className="flex items-center gap-2 font-hud text-[11px] font-bold uppercase tracking-[0.25em] text-emerald-300">
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" /> Problem statements are live
+                    </p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      {PS_COUNT} problem statements across {PS_THEMES.length} themes.
+                    </p>
+                    <Link href={PS_PAGE_PATH} className="ignite-btn-primary mt-4 flex items-center justify-center gap-2 rounded-sm py-3 font-orbitron text-sm font-bold tracking-wider text-black">
+                      <FileText className="h-4 w-4" /> VIEW PROBLEM STATEMENTS
+                    </Link>
+                  </div>
+                )}
+                {panelFacts}
+              </div>
+            ) : guide?.registration.mode === "none" ? (
               <div>
                 <h3 className="ignite-title mb-3 text-2xl">No Registration Needed</h3>
                 <p className="mb-6 text-sm text-slate-400">{guide.registration.note}</p>
-                <dl className="space-y-4">
-                  {[
-                    { icon: Calendar, label: "When", value: guide.when ? `${guide.when.dates} · ${guide.when.time}` : whenLabel(eventData.startAt, eventData.endAt, eventData.timezone) },
-                    { icon: MapPin, label: "Where", value: guide.venue },
-                  ].map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex items-start gap-3">
-                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
-                      <div>
-                        <dt className="font-hud text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">{label}</dt>
-                        <dd className="text-sm text-slate-200">{value}</dd>
-                      </div>
-                    </div>
-                  ))}
-                </dl>
-                {guide.related && (
-                  <Link href={guide.related.href} className="ignite-btn-primary mt-8 flex items-center justify-center gap-2 rounded-sm py-3 font-orbitron text-sm font-bold tracking-wider text-black">
-                    {guide.related.label}
-                  </Link>
-                )}
-                {hasDocument(guide) && (
-                  <Link href={guidePath(guide.slug)} className="ignite-btn-secondary mt-8 flex items-center justify-center gap-2 rounded-sm py-3 font-orbitron text-sm font-bold tracking-wider text-neutral-200">
-                    <BookOpen className="h-4 w-4" /> {guide.programme ? "VIEW PROGRAMME" : "READ THE RULEBOOK"}
-                  </Link>
-                )}
-              </div>
-            ) : closedReason ? (
-              <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <h3 className="ignite-title mb-3 text-xl">Registration Closed</h3>
-                <p className="text-sm text-slate-400">{closedReason}</p>
+                {panelFacts}
               </div>
             ) : (
               <div>

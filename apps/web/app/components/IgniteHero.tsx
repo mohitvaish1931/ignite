@@ -7,6 +7,7 @@ import Starfield from "./Starfield";
 import { SkitLogo } from "./SkitLogo";
 import HeroRails from "./HeroRails";
 import { PS_COUNT, PS_PAGE_PATH, PS_THEME_COUNT } from "../../lib/problem-statements";
+import { REGISTRATIONS_OPEN } from "../../lib/events";
 
 // Accounts are switched off for now (see _backend/README.md); this was the signed-in user
 // type HeroUser = { firstName?: string | null } | null;
@@ -169,10 +170,17 @@ export default function IgniteHero() {
                 <Image src="/ignite-wordmark.png" alt="IEEE IGNITE" width={93} height={40} priority className="h-10 w-auto" />
                 <span className="whitespace-nowrap rounded border border-orange-500/40 bg-orange-500/20 px-1.5 py-0.5 font-mono text-[9px] tracking-normal text-orange-400">&apos;26</span>
               </Link>
-              <div className="hidden items-center gap-1.5 whitespace-nowrap border-l border-white/15 pl-3 font-mono text-[10px] text-emerald-400 sm:flex">
-                <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span>REGISTRATIONS LIVE</span>
-              </div>
+              {REGISTRATIONS_OPEN ? (
+                <div className="hidden items-center gap-1.5 whitespace-nowrap border-l border-white/15 pl-3 font-mono text-[10px] text-emerald-400 sm:flex">
+                  <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span>REGISTRATIONS LIVE</span>
+                </div>
+              ) : (
+                <div className="hidden items-center gap-1.5 whitespace-nowrap border-l border-white/15 pl-3 font-mono text-[10px] text-red-300 sm:flex">
+                  <span className="h-2 w-2 rounded-full bg-red-400" />
+                  <span>REGISTRATIONS CLOSED</span>
+                </div>
+              )}
             </div>
 
             <nav className="flex shrink-0 items-center gap-2 font-hud text-[11px] uppercase tracking-widest text-neutral-300 sm:gap-5 sm:text-xs">
@@ -193,10 +201,10 @@ export default function IgniteHero() {
               )}
               */}
               <Link
-                href="/events"
+                href={REGISTRATIONS_OPEN ? "/events" : PS_PAGE_PATH}
                 className="whitespace-nowrap rounded border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-[10px] font-semibold tracking-wider text-orange-300 shadow-[0_0_10px_rgba(255,140,0,0.2)] transition-all hover:bg-orange-500 hover:text-black sm:text-xs"
               >
-                REGISTER
+                {REGISTRATIONS_OPEN ? "REGISTER" : "VIEW PS"}
               </Link>
             </nav>
           </header>
@@ -232,8 +240,8 @@ export default function IgniteHero() {
               SKIT Jaipur // In-Person Experience
             </p>
             <div className="mb-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              <Link href="/events" className="ignite-btn-primary group flex items-center gap-2 whitespace-nowrap rounded-sm px-6 py-2.5 font-orbitron text-xs font-bold uppercase tracking-wider text-black sm:text-sm">
-                <span>Register Now</span>
+              <Link href={REGISTRATIONS_OPEN ? "/events" : PS_PAGE_PATH} className="ignite-btn-primary group flex items-center gap-2 whitespace-nowrap rounded-sm px-6 py-2.5 font-orbitron text-xs font-bold uppercase tracking-wider text-black sm:text-sm">
+                <span>{REGISTRATIONS_OPEN ? "Register Now" : "Problem Statements"}</span>
                 <svg className="h-4 w-4 fill-current transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z" />
                 </svg>

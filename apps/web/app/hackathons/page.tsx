@@ -54,6 +54,7 @@ export default function HackathonsPage() {
 
   const startDate = new Date(hackathon.startAt);
   const endDate = new Date(hackathon.endAt);
+  const closed = hackathon.state === "REGISTRATION_CLOSED";
   // Prize pool, hacker count etc. came from the event's admin settings in the database
   const meta: Record<string, string | undefined> = {};
 
@@ -69,10 +70,10 @@ export default function HackathonsPage() {
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="flex flex-col gap-6">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
-              <span className="font-hud text-xs font-bold uppercase tracking-[0.25em] text-orange-400">
-                {hackathon.state === "LIVE" ? "Live now" : hackathon.state === "REGISTRATION_OPEN" ? "Registration open" : "Coming soon"}
+            <div className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 ${closed ? "border-red-500/40 bg-red-500/10" : "border-orange-500/30 bg-orange-500/10"}`}>
+              <span className={`h-2 w-2 rounded-full ${closed ? "bg-red-400" : "animate-pulse bg-orange-500"}`} />
+              <span className={`font-hud text-xs font-bold uppercase tracking-[0.25em] ${closed ? "text-red-300" : "text-orange-400"}`}>
+                {hackathon.state === "LIVE" ? "Live now" : hackathon.state === "REGISTRATION_OPEN" ? "Registration open" : closed ? "Registration closed" : "Coming soon"}
               </span>
             </div>
 
@@ -101,24 +102,37 @@ export default function HackathonsPage() {
             </div>
 
             <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-              {/* For now registration runs on the SKIT ERP, without logging in here */}
-              <a
-                href={HACKATHON_REGISTER_URL}
-                className="ignite-btn-primary group flex items-center justify-center gap-2 rounded-sm px-8 py-4 font-orbitron font-bold uppercase tracking-widest text-black"
-              >
-                Enter the Grid
-                <Terminal className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </a>
-              <Link href={PS_PAGE_PATH} className="ignite-btn-secondary flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border-emerald-400/40 px-6 py-4 font-orbitron text-sm font-bold uppercase tracking-wider text-neutral-100 sm:px-8 sm:text-base sm:tracking-widest">
-                <FileText className="h-5 w-5 text-emerald-400" /> Problem Statements
-              </Link>
+              {closed ? (
+                // Sign-ups are over: the problem statements lead
+                <Link
+                  href={PS_PAGE_PATH}
+                  className="ignite-btn-primary group flex items-center justify-center gap-2 whitespace-nowrap rounded-sm px-6 py-4 font-orbitron text-sm font-bold uppercase tracking-wider text-black sm:px-8 sm:text-base sm:tracking-widest"
+                >
+                  <FileText className="h-5 w-5" /> Problem Statements
+                  <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+              ) : (
+                <>
+                  {/* For now registration runs on the SKIT ERP, without logging in here */}
+                  <a
+                    href={HACKATHON_REGISTER_URL}
+                    className="ignite-btn-primary group flex items-center justify-center gap-2 rounded-sm px-8 py-4 font-orbitron font-bold uppercase tracking-widest text-black"
+                  >
+                    Enter the Grid
+                    <Terminal className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </a>
+                  <Link href={PS_PAGE_PATH} className="ignite-btn-secondary flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border-emerald-400/40 px-6 py-4 font-orbitron text-sm font-bold uppercase tracking-wider text-neutral-100 sm:px-8 sm:text-base sm:tracking-widest">
+                    <FileText className="h-5 w-5 text-emerald-400" /> Problem Statements
+                  </Link>
+                </>
+              )}
               <Link href={RULEBOOK_PATH} className="ignite-btn-secondary flex items-center justify-center gap-2 rounded-sm px-8 py-4 font-orbitron font-bold uppercase tracking-widest text-neutral-200">
                 <BookOpen className="h-5 w-5" /> Rulebook
               </Link>
             </div>
             <Link href={PS_PAGE_PATH} className="group -mt-1 inline-flex w-fit items-center gap-2 font-hud text-xs font-bold uppercase tracking-[0.2em] text-emerald-300 hover:text-emerald-200">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-              {PS_COUNT} problem statements are live <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              {closed ? "Registrations are closed · " : ""}{PS_COUNT} problem statements are live <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <p className="text-sm text-slate-400">
               {HACKATHON.mode} · {HACKATHON.openTo}.
@@ -242,13 +256,15 @@ export default function HackathonsPage() {
           <Flame className="mb-6 h-16 w-16 text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,1)]" />
           <h2 className="ignite-title mb-6 text-3xl md:text-5xl">Are You Ready to Hack?</h2>
           <p className="mb-10 max-w-xl text-lg text-slate-300">
-            Seats are limited and allotted first-come, first-served. Assemble your squad of up to {MAX_TEAM_SIZE} and lock in your spot.
+            {closed
+              ? `Registrations are now closed. The ${PS_COUNT} problem statements are live: read them with your team before the event.`
+              : `Seats are limited and allotted first-come, first-served. Assemble your squad of up to ${MAX_TEAM_SIZE} and lock in your spot.`}
           </p>
           <a
-            href={HACKATHON_REGISTER_URL}
+            href={closed ? PS_PAGE_PATH : HACKATHON_REGISTER_URL}
             className="rounded-sm bg-white px-10 py-5 font-orbitron text-xl font-bold uppercase tracking-widest text-black shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all hover:bg-orange-500 hover:text-white hover:shadow-[0_0_30px_rgba(249,115,22,0.6)]"
           >
-            Register Now
+            {closed ? "View Problem Statements" : "Register Now"}
           </a>
         </div>
       </section>
