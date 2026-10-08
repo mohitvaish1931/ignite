@@ -49,7 +49,7 @@ const EVENTS = [
     title: "HACKATHON",
     date: "14 - 15 OCT",
     venue: "Indoor Sports Complex",
-    text: "24 hours, fully offline: software & hardware builds by teams of 1-4, judged on a working demo.",
+    text: "₹5 lakh prize pool. 24 hours, fully offline: software & hardware builds by teams of 1-4, judged on a working demo.",
     href: "/events?tab=hackathons",
     slug: "ieee-ignite-hackathon-2026",
     featured: true,

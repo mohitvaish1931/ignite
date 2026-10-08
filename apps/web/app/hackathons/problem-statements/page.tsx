@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronRight, Download, ExternalLink } from "lucide-react";
-import { HACKATHON_REGISTER_URL, RULEBOOK_PATH } from "../../../lib/hackathon-rules";
+import { HACKATHON, HACKATHON_REGISTER_URL, RULEBOOK_PATH } from "../../../lib/hackathon-rules";
 import { PS_COUNT, PS_PDF_FILENAME, PS_PDF_PAGES, PS_PDF_PATH, PS_THEME_COUNT } from "../../../lib/problem-statements";
 import { REGISTRATIONS_OPEN } from "../../../lib/events";
 import ProblemStatementsBrowser from "./ProblemStatementsBrowser";
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const STATS = [
   { value: String(PS_COUNT), label: "Problem statements" },
   { value: String(PS_THEME_COUNT).padStart(2, "0"), label: "Themes" },
-  { value: "24 HRS", label: "Build window" },
+  { value: HACKATHON.prizePool.toUpperCase(), label: "Prize pool" },
   { value: "14-15 OCT", label: "SKIT Jaipur" },
 ];
 

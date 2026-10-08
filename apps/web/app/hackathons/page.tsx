@@ -85,6 +85,7 @@ export default function HackathonsPage() {
 
             <div className="mt-2 flex flex-wrap gap-6">
               {[
+                { icon: Trophy, label: "Prize pool", value: HACKATHON.prizePool },
                 { icon: Calendar, label: "Dates", value: dateRange(startDate, endDate) },
                 { icon: Clock, label: "Duration", value: durationLabel(startDate, endDate) },
                 { icon: MapPin, label: "Venue", value: HACKATHON.venue },
@@ -162,7 +163,7 @@ export default function HackathonsPage() {
       <section className="relative z-10 border-y border-white/5 bg-black/40 py-14">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:px-8 md:grid-cols-4">
           {[
-            { icon: Trophy, value: meta.prizePool || "TBA", label: "PRIZE POOL" },
+            { icon: Trophy, value: meta.prizePool || HACKATHON.prizePool, label: "PRIZE POOL" },
             // Registrations happen on the ERP, so this site has no hacker count to show; the fee is fixed
             { icon: IndianRupee, value: "₹500", label: "PER TEAM" },
             { icon: Code, value: meta.codingHours || durationLabel(startDate, endDate).split(" ")[0], label: "HOURS OF CODING" },

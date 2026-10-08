@@ -4,7 +4,7 @@ import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Calendar, ChevronRight, FileText, Lock, Users } from "lucide-react";
+import { BookOpen, Calendar, ChevronRight, FileText, Lock, Trophy, Users } from "lucide-react";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, MISSION_STEPS, RULEBOOK_PATH } from "../../lib/hackathon-rules";
 import { PS_COUNT, PS_PAGE_PATH, PS_THEME_COUNT } from "../../lib/problem-statements";
 
@@ -160,6 +160,19 @@ function BriefFacts({ hackathon, door }: { hackathon: Hackathon; door?: boolean 
   );
 }
 
+/** The prize pool, in gold so it stands apart from the orange HUD. */
+function PrizePool({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-3 rounded-sm border border-amber-400/40 bg-gradient-to-r from-amber-400/[0.14] to-amber-400/[0.03] p-3 ${className}`}>
+      <Trophy className="h-7 w-7 shrink-0 text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]" />
+      <div>
+        <div className="font-orbitron text-xl font-black uppercase text-amber-200">{HACKATHON.prizePool}</div>
+        <div className="font-hud text-[10px] font-bold uppercase tracking-[0.25em] text-amber-300/80">Total prize pool</div>
+      </div>
+    </div>
+  );
+}
+
 /** Pulsing green "live" light, sized to the text around it. */
 function LiveDot() {
   return (
@@ -228,6 +241,9 @@ function MissionBrief({ hackathon }: { hackathon: Hackathon }) {
 
       <div className="mt-[2.6cqw] flex flex-wrap items-center justify-center gap-[1.6cqw] font-hud text-[max(8px,1.75cqw)] font-bold uppercase tracking-[0.2em]">
         <span className={`rounded-sm border px-[1.4cqw] py-[0.5cqw] ${status.className}`}>{status.label}</span>
+        <span className="flex items-center gap-[0.6cqw] rounded-sm border border-amber-400/50 bg-amber-400/10 px-[1.4cqw] py-[0.5cqw] text-amber-300">
+          <Trophy className="h-[1.1em] w-[1.1em]" /> {HACKATHON.prizePool} prize pool
+        </span>
         {days > 0 && <span className="text-slate-300">T-{days} day{days === 1 ? "" : "s"} to launch</span>}
       </div>
 
@@ -311,7 +327,8 @@ function MissionControl({ hackathon }: { hackathon: Hackathon }) {
       <p className="ignite-eyebrow mb-1"><span className="text-orange-500/60">{"////"}</span> Launch sequence</p>
       <h3 className="ignite-title mb-5 text-xl">Mission Control</h3>
       <Countdown startAt={hackathon.startAt} endAt={hackathon.endAt} />
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <PrizePool className="mt-4" />
+      <div className="mt-3 grid grid-cols-2 gap-3">
         {stats.map((s) => (
           <div key={s.label} className="rounded-sm border border-white/10 bg-white/[0.03] p-3">
             <div className="font-orbitron text-xl font-bold text-white">{s.value}</div>
@@ -550,6 +567,7 @@ export default function HackathonAirlock({ hackathons }: { hackathons: Hackathon
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.5 }} className="-mt-2 flex flex-col gap-4 sm:hidden">
               {single ? (
                 <div className="ignite-panel ignite-hud-bracket flex flex-col gap-4 p-4">
+                  <PrizePool />
                   <p className="text-sm text-slate-300">{featured.summary || HACKATHON.tagline}</p>
                   <BriefFacts hackathon={featured} />
                   <BriefActions closed={featured.state === "REGISTRATION_CLOSED"} />

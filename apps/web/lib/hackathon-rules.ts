@@ -25,6 +25,7 @@ export const HACKATHON = {
   dates: "14 - 15 October 2026",
   venue: "Indoor Sports Complex, SKIT Jaipur",
   fee: "₹500 per team",
+  prizePool: "₹5 Lakh",
   venueFull: "Swami Keshvanand Institute of Technology, Management & Gramothan (SKIT), Jaipur",
   mode: "Offline only",
   duration: "24 hours, continuous",
@@ -37,6 +38,7 @@ export const AT_A_GLANCE = [
   { label: "Dates", value: HACKATHON.dates },
   { label: "Venue", value: HACKATHON.venue },
   { label: "Registration fee", value: `${HACKATHON.fee} (non-refundable)` },
+  { label: "Prize pool", value: HACKATHON.prizePool },
   { label: "Mode", value: "Offline only (no online participation)" },
   { label: "Duration", value: HACKATHON.duration },
   { label: "Team size", value: HACKATHON.teamSize },
@@ -249,6 +251,7 @@ export const HACKATHON_GUIDE: EventGuide = {
 
   venue: `${HACKATHON.venue} · Offline only`,
   details: [
+    { label: "Prize pool", value: HACKATHON.prizePool },
     { label: "Registration fee", value: `${HACKATHON.fee}, non-refundable once registration is complete` },
     { label: "Organized by", value: "IEEE, CSE/IT, ECE, IDEA Lab, IIC, CS SBC, MTTs SBC, TEC SBC, WIE AG" },
     { label: "Arenas", value: "Software & Intelligence · Hardware & Silicon" },

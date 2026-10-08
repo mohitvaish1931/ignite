@@ -191,7 +191,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                       : { icon: Users, label: "Registration", value: "Via the official registration form" }
                     : { icon: Users, label: "Capacity", value: eventData.capacity ? `${eventData.capacity} seats` : "Open to all" },
                 { icon: MapPin, label: "Location", value: guide?.venue ?? "SKIT, Jaipur" },
-                ...(guide?.details ?? []).map((d) => ({ icon: Info, ...d })),
+                ...(guide?.details ?? []).map((d) => ({ icon: d.label === "Prize pool" ? Trophy : Info, ...d })),
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-4">
                   <Icon className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />

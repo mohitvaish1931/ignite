@@ -4,7 +4,7 @@ import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { EVENTS, REGISTRATIONS_OPEN } from "../../lib/events";
 import { getGuide } from "../../lib/guides";
-import { isHackathonEvent } from "../../lib/hackathon-rules";
+import { HACKATHON, isHackathonEvent } from "../../lib/hackathon-rules";
 import { PS_PAGE_PATH } from "../../lib/problem-statements";
 
 // Side HUD panels for wide screens: they fill the space either side of the poster art with the
@@ -134,6 +134,7 @@ function LaunchControl() {
             ? { k: "STATUS", v: "REGISTRATIONS LIVE", accent: "text-emerald-400" }
             : { k: "STATUS", v: "REGISTRATIONS CLOSED", tone: "text-red-300" },
           { k: "PS", v: "LIVE NOW", accent: "text-emerald-400", href: PS_PAGE_PATH },
+          { k: "PRIZE POOL", v: HACKATHON.prizePool.toUpperCase(), tone: "text-amber-300" },
           { k: "VENUE", v: "SKIT JAIPUR" },
           { k: "MODE", v: "IN-PERSON" },
           { k: "PAYLOAD", v: "5 EVENTS · 4 DAYS" },
