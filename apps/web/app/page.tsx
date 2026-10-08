@@ -98,6 +98,9 @@ const COMMITTEE = [
     members: [
       { name: "Yash Samriya", role: "Design Team", authLevel: "EXEC", imagePath: "/team/yash-samriya.webp" },
       { name: "Palak Choudhary", role: "Design Team", authLevel: "EXEC", imagePath: "/team/palak-choudhary.webp" },
+      { name: "Divyansh Maheshwari", role: "Design Team", authLevel: "EXEC", imagePath: "/team/divyansh-maheshwari.webp" },
+      { name: "Divyansh Shah", role: "Designer", authLevel: "EXEC", imagePath: "/team/divyansh-shah.webp" },
+      { name: "Tushar Vijay", role: "Video Editor", authLevel: "EXEC", imagePath: "/team/tushar-vijay.webp" },
     ],
   },
   {
@@ -110,7 +113,7 @@ const COMMITTEE = [
   {
     title: "Organizing Committee",
     members: [
-      { name: "Divyansh Batti", role: "Overall Support", authLevel: "STAFF", imagePath: "/team/divyansh-batti.webp" },
+      { name: "Divyansh Bhati", role: "Overall Support", authLevel: "STAFF", imagePath: "/team/divyansh-bhati.webp" },
       { name: "Shaurya", role: "Organizing Committee", authLevel: "STAFF", imagePath: "/team/shaurya.webp" },
       { name: "Aashi Goyal", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/aashi-goyal.webp" },
       { name: "Aditya Mangal", role: "Panel Discussion Coordinator", authLevel: "STAFF", imagePath: "/team/aditya-mangal.webp" },
@@ -121,7 +124,6 @@ const COMMITTEE = [
       { name: "Nainika", role: "Organizing Committee", authLevel: "STAFF", imagePath: "/team/nainika.webp" },
       { name: "Kratika Sharma", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/kratika-sharma.webp" },
       { name: "Ananya", role: "Round Table Coordinator", authLevel: "STAFF", imagePath: "/team/ananya.webp" },
-      { name: "Divyansh Maheshwari", role: "Video Editor", authLevel: "STAFF", imagePath: "/team/divyansh-maheshwari.webp" },
     ],
   },
 ];
