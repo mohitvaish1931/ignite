@@ -10,6 +10,7 @@ import { Calendar, ChevronRight, Lock, MapPin, Trophy, Users } from "lucide-reac
 import { EVENTS, REGISTRATIONS_OPEN, cardImage, type SiteEvent } from "../../lib/events";
 import { PS_COUNT, PS_PAGE_PATH } from "../../lib/problem-statements";
 import HackathonAirlock from "../components/HackathonAirlock";
+import { CautionTape } from "../components/CautionTape";
 import { isHackathonEvent } from "../../lib/hackathon-rules";
 import { getGuide } from "../../lib/guides";
 
@@ -78,9 +79,13 @@ function EventCard({ event, index }: { event: SiteEvent; index: number }) {
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-orange-500/10" />
               <div className="pointer-events-none absolute inset-0 bg-orange-500/10 mix-blend-overlay" />
-              <span className={`absolute right-2 top-2 rounded-sm border px-2 py-0.5 font-hud text-[10px] font-bold tracking-widest backdrop-blur-sm ${status.className}`}>
-                {status.label}
-              </span>
+              {event.state === "REGISTRATION_CLOSED" ? (
+                <CautionTape size="sm" tilt={-12} className="pointer-events-none absolute -left-[15%] top-[42%] w-[130%]" />
+              ) : (
+                <span className={`absolute right-2 top-2 rounded-sm border px-2 py-0.5 font-hud text-[10px] font-bold tracking-widest backdrop-blur-sm ${status.className}`}>
+                  {status.label}
+                </span>
+              )}
             </div>
           </div>
 
@@ -100,8 +105,8 @@ function EventCard({ event, index }: { event: SiteEvent; index: number }) {
                   <span className="line-clamp-1">{guide.venue.toUpperCase()}</span>
                 </span>
               )}
-              <span className={`flex items-center gap-2 ${event.state === "REGISTRATION_CLOSED" ? "text-red-300" : ""}`}>
-                {event.state === "REGISTRATION_CLOSED" ? <Lock className="h-3.5 w-3.5 text-red-400" /> : <Users className="h-3.5 w-3.5 text-orange-500" />}
+              <span className={`flex items-center gap-2 ${event.state === "REGISTRATION_CLOSED" ? "text-yellow-300" : ""}`}>
+                {event.state === "REGISTRATION_CLOSED" ? <Lock className="h-3.5 w-3.5 text-yellow-400" /> : <Users className="h-3.5 w-3.5 text-orange-500" />}
                 {event.state === "REGISTRATION_CLOSED"
                   ? "REGISTRATION CLOSED"
                   : noRegistration
@@ -136,20 +141,21 @@ export default function EventsPage() {
           EVENTS
         </h1>
         {!REGISTRATIONS_OPEN && (
-          // Sign-ups are over: say so once, and point at what's live now
-          <Link
-            href={PS_PAGE_PATH}
-            className="group mt-4 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-sm border border-white/10 bg-black/50 px-4 py-2.5 text-center backdrop-blur-sm transition-colors hover:border-emerald-400/50"
-          >
-            <span className="flex items-center gap-1.5 font-hud text-xs font-bold uppercase tracking-[0.2em] text-red-300">
-              <Lock className="h-3.5 w-3.5" /> Registrations closed
-            </span>
-            <span className="hidden text-white/20 sm:inline">{"//"}</span>
-            <span className="flex items-center gap-1.5 font-hud text-xs font-bold uppercase tracking-[0.2em] text-emerald-300 group-hover:text-emerald-200">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" /> {PS_COUNT} problem statements live
+          // Sign-ups are over: tape the page off, then point at what's live now
+          <>
+            <p className="sr-only">Registrations for every event are closed.</p>
+            {/* Spans the page padding (not 100vw, which counts the scrollbar); the ends fade out on very wide screens */}
+            <div className="-mx-4 mt-6 w-[calc(100%+2rem)] self-stretch overflow-hidden py-4 [mask-image:linear-gradient(90deg,transparent,#000_4%,#000_96%,transparent)] sm:-mx-8 sm:w-[calc(100%+4rem)]">
+              <CautionTape tilt={-2} className="-mx-8" text="REGISTRATIONS CLOSED" />
+            </div>
+            <Link
+              href={PS_PAGE_PATH}
+              className="group mt-2 flex items-center gap-1.5 font-hud text-xs font-bold uppercase tracking-[0.2em] text-emerald-300 hover:text-emerald-200"
+            >
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" /> {PS_COUNT} problem statements are live
               <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </Link>
+            </Link>
+          </>
         )}
       </div>
 
@@ -217,7 +223,7 @@ function EventsBrowser() {
         </div>
         <h2 className="font-orbitron text-xl font-bold uppercase tracking-widest text-white md:text-2xl">{activeTab}</h2>
         <div className="relative mx-6 h-px flex-1 bg-white/20">
-          <div className="absolute left-0 top-0 h-px w-32 bg-gradient-to-r from-orange-500 to-transparent shadow-[0_0_10px_#f97316]" />
+          <div className="absolute left-0 top-0 h-px w-32 max-w-full bg-gradient-to-r from-orange-500 to-transparent shadow-[0_0_10px_#f97316]" />
         </div>
         <span className="font-hud text-sm font-bold tracking-widest text-slate-500">{String(visible.length).padStart(2, "0")}</span>
       </div>

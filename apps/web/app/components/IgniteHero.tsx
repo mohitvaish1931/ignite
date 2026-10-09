@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { label: "Events", href: "/events", className: "hidden sm:inline" },
   { label: "Schedule", href: "#schedule", className: "hidden md:inline" },
   { label: "Team", href: "#team", className: "hidden sm:inline" },
+  { label: "Sponsors", href: "/sponsors", className: "hidden lg:inline" },
 ];
 
 const STATS = [
@@ -176,9 +177,8 @@ export default function IgniteHero() {
                   <span>REGISTRATIONS LIVE</span>
                 </div>
               ) : (
-                <div className="hidden items-center gap-1.5 whitespace-nowrap border-l border-white/15 pl-3 font-mono text-[10px] text-red-300 sm:flex">
-                  <span className="h-2 w-2 rounded-full bg-red-400" />
-                  <span>REGISTRATIONS CLOSED</span>
+                <div className="hidden items-center whitespace-nowrap border-l border-white/15 pl-3 sm:flex">
+                  <span className="ignite-caution-tag rounded-sm px-1.5 py-0.5 font-mono text-[10px] tracking-wider">REGISTRATIONS CLOSED</span>
                 </div>
               )}
             </div>

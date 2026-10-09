@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Calendar, ChevronRight, FileText, Lock, Trophy, Users } from "lucide-react";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, MISSION_STEPS, RULEBOOK_PATH } from "../../lib/hackathon-rules";
 import { PS_COUNT, PS_PAGE_PATH, PS_THEME_COUNT } from "../../lib/problem-statements";
+import { CautionTape } from "./CautionTape";
 
 type Hackathon = {
   slug: string;
@@ -42,7 +43,7 @@ function dateRange(start: string | Date, end: string | Date) {
 function statusOf(h: Hackathon) {
   if (h.state === "LIVE") return { label: "LIVE", className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" };
   if (h.state === "REGISTRATION_OPEN") return { label: "REG. OPEN", className: "border-orange-500/40 bg-orange-500/10 text-orange-300" };
-  if (h.state === "REGISTRATION_CLOSED") return { label: "REG. CLOSED", className: "border-red-500/40 bg-red-500/10 text-red-300" };
+  if (h.state === "REGISTRATION_CLOSED") return { label: "REG. CLOSED", className: "ignite-caution-tag" };
   return { label: "UPCOMING", className: "border-white/15 bg-white/5 text-slate-300" };
 }
 
@@ -190,7 +191,7 @@ function BriefActions({ door, closed }: { door?: boolean; closed?: boolean }) {
       {closed ? (
         // Sign-ups are over, so the problem statements take the lead
         <>
-          <span className={`flex items-center gap-1.5 rounded-sm border border-red-500/40 bg-red-500/10 font-orbitron font-bold text-red-300 ${size} ${door ? "" : "w-full justify-center"}`}>
+          <span className={`ignite-caution-tag flex items-center gap-1.5 rounded-sm font-orbitron ${size} ${door ? "" : "w-full justify-center"}`}>
             <Lock className="h-[1.1em] w-[1.1em]" /> REGISTRATION CLOSED
           </span>
           <Link href={PS_PAGE_PATH} className={`ignite-btn-primary group flex items-center gap-1.5 rounded-sm font-orbitron font-bold text-black ${size} ${door ? "" : "w-full justify-center"}`}>
@@ -337,9 +338,9 @@ function MissionControl({ hackathon }: { hackathon: Hackathon }) {
         ))}
       </div>
       {hackathon.state === "REGISTRATION_CLOSED" ? (
-        <div className="mt-4 flex items-center gap-2 rounded-sm border border-red-500/30 bg-red-500/[0.07] p-3">
-          <Lock className="h-4 w-4 shrink-0 text-red-300" />
-          <p className="font-hud text-[11px] font-bold uppercase tracking-[0.25em] text-red-300">Registrations closed</p>
+        <div className="-mx-6 mt-4 overflow-hidden py-2">
+          <p className="sr-only">Registrations closed</p>
+          <CautionTape size="sm" tilt={-2} className="-mx-3" text="REGISTRATIONS CLOSED" />
         </div>
       ) : (
         <a href={HACKATHON_REGISTER_URL} className="group mt-4 block rounded-sm border border-orange-500/30 bg-orange-500/[0.07] p-3 transition-colors hover:bg-orange-500/15">

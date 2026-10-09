@@ -642,3 +642,64 @@ html[data-intro="seen"] .ignite-intro { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .ignite-announce-sweep { animation: none; opacity: 0; }
 }
+
+/* ---------- Caution tape (app/components/CautionTape.tsx): registration-closed spots ---------- */
+/* In the components layer so utilities on a tape (absolute, inset, width...) win over its defaults */
+@layer components {
+  .ignite-tape {
+    --tape-yellow: #facc15;
+    --tape-edge: 5px;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #0a0a0a;
+    background: linear-gradient(180deg, #fde047 0%, var(--tape-yellow) 45%, #eab308 100%);
+    border-block: var(--tape-edge) solid transparent;
+    border-image: repeating-linear-gradient(-45deg, #0a0a0a 0 8px, var(--tape-yellow) 8px 16px) 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 28px rgba(250, 204, 21, 0.18);
+    font-family: var(--font-orbitron), sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  /* Plastic sheen across the band */
+  .ignite-tape::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 45%, rgba(0, 0, 0, 0.1));
+  }
+  .ignite-tape-sm { --tape-edge: 3px; padding-block: 4px; font-size: 9px; }
+  .ignite-tape-md { --tape-edge: 5px; padding-block: 7px; font-size: 12px; }
+  .ignite-tape-lg { --tape-edge: 7px; padding-block: 12px; font-size: clamp(14px, 2.2vw, 22px); }
+  .ignite-tape-track {
+    display: flex;
+    width: max-content;
+    animation: ignite-tape-scroll 30s linear infinite;
+  }
+  .ignite-tape-reverse { animation-direction: reverse; }
+  .ignite-tape-run {
+    display: flex;
+    align-items: center;
+    gap: 1.1em;
+    padding-right: 1.1em;
+  }
+  .ignite-tape-sep { font-size: 0.85em; opacity: 0.8; }
+}
+@keyframes ignite-tape-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* Small static label in the same tape style (badges, status pills, the closed button) */
+.ignite-caution-tag {
+  color: #0a0a0a;
+  background: #facc15;
+  border-block: 3px solid transparent;
+  border-image: repeating-linear-gradient(-45deg, #0a0a0a 0 5px, #facc15 5px 10px) 1;
+  font-weight: 800;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ignite-tape-track { animation: none; }
+}

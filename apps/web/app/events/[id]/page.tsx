@@ -14,6 +14,7 @@ import { MAX_TEAM_SIZE, isHackathonEvent } from "../../../lib/hackathon-rules";
 import { PROBLEM_STATEMENTS, PS_COUNT, PS_PAGE_PATH, PS_PDF_FILENAME, PS_PDF_PATH, PS_THEMES } from "../../../lib/problem-statements";
 import { getGuide, guidePath, hasDocument } from "../../../lib/guides";
 import { ProgrammeTimeline } from "../../components/ProgrammeTimeline";
+import { CautionTape } from "../../components/CautionTape";
 
 const STATE_LABELS: Record<string, string> = {
   DRAFT: "Draft",
@@ -147,7 +148,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
             <span className="rounded-sm border border-orange-500/40 bg-orange-500/15 px-3 py-1 font-orbitron text-xs font-bold tracking-widest text-orange-400">
               {isHackathon ? "HACKATHON" : (eventData.category?.name ?? "Event").toUpperCase()}
             </span>
-            <span className={`rounded-sm border px-3 py-1 font-hud text-xs font-bold uppercase tracking-widest ${eventData.state === "LIVE" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : registrationClosed ? "border-red-500/40 bg-red-500/10 text-red-300" : "border-white/15 bg-white/5 text-slate-300"}`}>
+            <span className={`rounded-sm border px-3 py-1 font-hud text-xs font-bold uppercase tracking-widest ${eventData.state === "LIVE" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : registrationClosed ? "ignite-caution-tag" : "border-white/15 bg-white/5 text-slate-300"}`}>
               {STATE_LABELS[eventData.state] ?? eventData.state}
             </span>
             {eventData.organization?.name && (
@@ -327,8 +328,8 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
           <div className="ignite-panel ignite-hud-bracket sticky top-28 p-8">
             {closedReason ? (
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10">
-                  <Lock className="h-5 w-5 text-red-300" />
+                <div className="-mx-8 -mt-3 mb-5 overflow-hidden py-3">
+                  <CautionTape tilt={-3} className="-mx-4" />
                 </div>
                 <h3 className="ignite-title mb-3 text-2xl">Registration Closed</h3>
                 <p className="mb-6 text-sm text-slate-400">{closedReason}</p>

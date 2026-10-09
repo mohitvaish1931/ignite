@@ -10,6 +10,7 @@ import { BookOpen, Calendar, ChevronRight, Clock, Code, FileText, Flame, IndianR
 import { EVENTS, bannerImage } from "../../lib/events";
 import { HACKATHON, HACKATHON_REGISTER_URL, JUDGING_CRITERIA, MAX_TEAM_SIZE, MIN_TEAM_SIZE, RULEBOOK_PATH, isHackathonEvent } from "../../lib/hackathon-rules";
 import { PS_COUNT, PS_PAGE_PATH } from "../../lib/problem-statements";
+import { CautionTape } from "../components/CautionTape";
 
 function durationLabel(start: Date, end: Date) {
   const hours = Math.max(1, Math.round((end.getTime() - start.getTime()) / 3_600_000));
@@ -70,9 +71,9 @@ export default function HackathonsPage() {
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="flex flex-col gap-6">
-            <div className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 ${closed ? "border-red-500/40 bg-red-500/10" : "border-orange-500/30 bg-orange-500/10"}`}>
-              <span className={`h-2 w-2 rounded-full ${closed ? "bg-red-400" : "animate-pulse bg-orange-500"}`} />
-              <span className={`font-hud text-xs font-bold uppercase tracking-[0.25em] ${closed ? "text-red-300" : "text-orange-400"}`}>
+            <div className={`inline-flex w-fit items-center gap-2 px-3 py-1 ${closed ? "ignite-caution-tag rounded-sm" : "rounded-full border border-orange-500/30 bg-orange-500/10"}`}>
+              {!closed && <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />}
+              <span className={`font-hud text-xs font-bold uppercase tracking-[0.25em] ${closed ? "text-black" : "text-orange-400"}`}>
                 {hackathon.state === "LIVE" ? "Live now" : hackathon.state === "REGISTRATION_OPEN" ? "Registration open" : closed ? "Registration closed" : "Coming soon"}
               </span>
             </div>
@@ -254,6 +255,11 @@ export default function HackathonsPage() {
       <section className="relative z-10 overflow-hidden px-4 py-24 sm:px-8">
         <div className="absolute inset-0 -z-10 scale-110 skew-y-3 border-y border-orange-500/20 bg-orange-600/10" />
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+          {closed && (
+            <div className="mb-10 w-screen overflow-hidden py-4">
+              <CautionTape tilt={-3} reverse className="-mx-8" text="REGISTRATIONS CLOSED" />
+            </div>
+          )}
           <Flame className="mb-6 h-16 w-16 text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,1)]" />
           <h2 className="ignite-title mb-6 text-3xl md:text-5xl">Are You Ready to Hack?</h2>
           <p className="mb-10 max-w-xl text-lg text-slate-300">

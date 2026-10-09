@@ -22,6 +22,7 @@ const PUBLIC_LINKS = [
   { label: "Events", href: "/events" },
   { label: "Hackathons", href: HACKATHON_ENTRY },
   { label: "Rulebooks", href: "/rulebooks" },
+  { label: "Sponsors", href: "/sponsors" },
 ];
 
 /** The header link to light up; every hackathon page counts as Hackathons rather than Events. */

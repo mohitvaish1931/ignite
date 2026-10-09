@@ -9,6 +9,7 @@ import { ChevronRight, Code, MapPin, Mic, Presentation, RadioTower, UsersRound }
 import IgniteHero from "./components/IgniteHero";
 import IntroLoader from "./components/IntroLoader";
 import CommitteeCard from "./components/CommitteeCard";
+import { CautionTape } from "./components/CautionTape";
 import { REGISTRATIONS_OPEN, bannerImage, cardImage, findEvent } from "../lib/events";
 import { PS_COUNT, PS_PAGE_PATH } from "../lib/problem-statements";
 
@@ -317,7 +318,7 @@ export default function LandingPage() {
             <Image src="/robot.webp" alt="" fill sizes="(max-width: 768px) 256px, 352px" className="object-contain object-bottom" />
           </div>
 
-          <div className="relative z-30 flex flex-col items-center">
+          <div className="relative z-30 flex w-full flex-col items-center">
             {REGISTRATIONS_OPEN ? (
               <>
                 <h2 className="font-orbitron font-black text-5xl md:text-[7rem] leading-none tracking-tighter mb-2 uppercase drop-shadow-2xl">
@@ -330,12 +331,12 @@ export default function LandingPage() {
               </>
             ) : (
               <>
-                <h2 className="font-orbitron font-black text-4xl sm:text-5xl md:text-[6.5rem] leading-none tracking-tighter mb-2 uppercase drop-shadow-2xl">
-                  REGISTRATIONS
-                </h2>
-                <h2 className="font-orbitron font-black text-5xl md:text-[7.5rem] leading-none tracking-tighter mb-6 uppercase drop-shadow-2xl">
-                  <span className="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.8)]">CLOSED</span>
-                </h2>
+                <h2 className="sr-only">Registrations closed</h2>
+                {/* Crossed "do not cross" tapes run across the whole section */}
+                <div className="relative mb-6 mt-2 h-40 w-[130vw] max-w-none md:h-56" aria-hidden="true">
+                  <CautionTape size="lg" tilt={5} reverse text="DO NOT CROSS" className="absolute inset-x-0 top-1/2 -translate-y-1/2" />
+                  <CautionTape size="lg" tilt={-6} text="REGISTRATIONS CLOSED" className="absolute inset-x-0 top-1/2 -translate-y-1/2" />
+                </div>
                 <p className="mb-12 max-w-xl text-base text-slate-300 md:text-lg">
                   Registrations for every IEEE IGNITE &apos;26 event are now closed. The {PS_COUNT} hackathon problem statements are live.
                 </p>
@@ -397,6 +398,7 @@ export default function LandingPage() {
             <a href="#schedule" className="hover:text-orange-400 transition-colors">Schedule</a>
             <Link href="/events" className="hover:text-orange-400 transition-colors">Events</Link>
             <Link href="/rulebooks" className="hover:text-orange-400 transition-colors">Rulebooks</Link>
+            <Link href="/sponsors" className="hover:text-orange-400 transition-colors">Sponsors</Link>
           </nav>
           <p className="text-slate-600 font-mono text-[10px] tracking-wider">© 2026 IEEE STUDENT BRANCH // ALL RIGHTS RESERVED</p>
         </div>

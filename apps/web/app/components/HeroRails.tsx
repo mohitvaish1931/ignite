@@ -132,7 +132,7 @@ function LaunchControl() {
         {[
           REGISTRATIONS_OPEN
             ? { k: "STATUS", v: "REGISTRATIONS LIVE", accent: "text-emerald-400" }
-            : { k: "STATUS", v: "REGISTRATIONS CLOSED", tone: "text-red-300" },
+            : { k: "STATUS", v: "REGISTRATIONS CLOSED", tone: "text-yellow-300" },
           { k: "PS", v: "LIVE NOW", accent: "text-emerald-400", href: PS_PAGE_PATH },
           { k: "PRIZE POOL", v: HACKATHON.prizePool.toUpperCase(), tone: "text-amber-300" },
           { k: "VENUE", v: "SKIT JAIPUR" },
